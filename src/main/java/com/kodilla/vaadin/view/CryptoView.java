@@ -38,12 +38,42 @@ public class CryptoView extends HorizontalLayout {
         H3 accountBalance = new H3("Actual account balance");
         Label accountBalanceValue = new Label(getBalance());
 
-        H3 exchangeCryptoCurrency = new H3("Echange Cryptocurrency");
-        BigDecimalField currencyAmount = new BigDecimalField("Amount");
+        H3 exchangeCryptoCurrency = new H3("Exchange Cryptocurrency");
+        BigDecimalField cryptocurrencyAmount = new BigDecimalField("Amount");
         ComboBox<CryptoCurrency> cryptocurrency = new ComboBox<>("Cryptocurrency");
         cryptocurrency.setItems(CryptoCurrency.values());
-        amountLayout.add(currencyAmount, cryptocurrency);
+        amountLayout.add(cryptocurrencyAmount, cryptocurrency);
         Button buy = new Button("Buy");
+        Button sell = new Button("Sell");
+
+        buttonsLayout.add(buy, sell);
+        exchangeLayout.add(accountBalance, accountBalanceValue, exchangeCryptoCurrency, amountLayout, buttonsLayout);
+
+        H3 currencyBalance = new H3("Currencies balance");
+        Label btc = new Label(CryptoCurrency.BTC + " - " + cryptoService.getCryptoBalance(CryptoCurrency.BTC).getBalance().setScale(2, RoundingMode.CEILING));
+        Label eth = new Label(CryptoCurrency.ETH + " - " + cryptoService.getCryptoBalance(CryptoCurrency.ETH).getBalance().setScale(2, RoundingMode.CEILING));
+        Label ltc = new Label(CryptoCurrency.LTC + " - " + cryptoService.getCryptoBalance(CryptoCurrency.LTC).getBalance().setScale(2, RoundingMode.CEILING));
+        Label sol = new Label(CryptoCurrency.SOL + " - " + cryptoService.getCryptoBalance(CryptoCurrency.SOL).getBalance().setScale(2, RoundingMode.CEILING));
+        Label doge = new Label(CryptoCurrency.DOGE + " - " + cryptoService.getCryptoBalance(CryptoCurrency.DOGE).getBalance().setScale(2, RoundingMode.CEILING));
+        balanceLayout.add(currencyBalance, btc, eth, ltc, sol, doge);
+
+        H3 rates = new H3("Actual rates");
+        Label bitcoin = new Label(CryptoCurrency.BTC + " - " + cryptoService.getCryptoRate(CryptoCurrency.BTC));
+        Label ethereum = new Label(CryptoCurrency.ETH + " - " + cryptoService.getCryptoRate(CryptoCurrency.ETH));
+        Label litecoin = new Label(CryptoCurrency.LTC + " - " + cryptoService.getCryptoRate(CryptoCurrency.LTC));
+        Label solana = new Label(CryptoCurrency.SOL + " - " + cryptoService.getCryptoRate(CryptoCurrency.SOL));
+        Label dogecoin = new Label(CryptoCurrency.DOGE + " - " + cryptoService.getCryptoRate(CryptoCurrency.DOGE));
+
+        ratesLayout.add(rates, bitcoin, ethereum, litecoin, solana, dogecoin);
+        topLayout.add(exchangeLayout, balanceLayout, ratesLayout);
+
+        H3 depositHistory = new H3("Transactions history");
+        cryptoGrid.setItems(cryptoService.getAllTransactions());
+        cryptoGrid.setColumns("transactionId", "transactionDate", "transactionAccountValue", "cryptoCurrencyCode", "transactionCryptoValue");
+
+
+        cryptoLayout.add(topLayout, depositHistory, cryptoGrid);
+        add(cryptoLayout);
     }
 
     public String getBalance() {

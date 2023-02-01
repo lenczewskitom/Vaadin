@@ -10,7 +10,7 @@ import java.math.BigDecimal;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class CryptoCurrencyBalanceDto {
+public class CryptoBalanceDto {
 
     private BigDecimal balance;
     private CryptoCurrency CryptocurrencyCode;

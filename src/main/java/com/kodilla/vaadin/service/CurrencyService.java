@@ -29,7 +29,7 @@ public class CurrencyService {
     public BigDecimal getExchangeRate(Currency currency) {
         URI uri = UriComponentsBuilder.fromHttpUrl("http://localhost:8080/v1/currency/rate")
                 .queryParam("currency", currency).build().encode().toUri();
-        return restTemplate.getForObject(uri, RatesDto.class).getMid();
+        return restTemplate.getForObject(uri, RatesDto.class).getRate();
     }
 
     public List<CurrencyTransactionDto> getAllTransactions() {

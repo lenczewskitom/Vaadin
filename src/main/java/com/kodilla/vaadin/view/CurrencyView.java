@@ -42,7 +42,7 @@ public class CurrencyView extends HorizontalLayout {
         H3 accountBalance = new H3("Actual account balance");
         Label accountBalanceValue = new Label(getBalance());
 
-        H3 exchangeCurrency = new H3("Echange Currency");
+        H3 exchangeCurrency = new H3("Exchange Currency");
         BigDecimalField currencyAmount = new BigDecimalField("Amount");
         ComboBox<Currency> currency = new ComboBox<>("Currency");
         currency.setItems(Currency.values());
@@ -112,7 +112,7 @@ public class CurrencyView extends HorizontalLayout {
 
         H3 depositHistory = new H3("Transactions history");
         currencyGrid.setItems(currencyService.getAllTransactions());
-        currencyGrid.setColumns("transactionId", "transactionDate", "transationAccountValue", "currencyCode", "transactionCurrencyValue");
+        currencyGrid.setColumns("transactionId", "transactionDate", "transactionAccountValue", "currencyCode", "transactionCurrencyValue");
 
         currencyLayout.add(topLayout, depositHistory, currencyGrid);
         add(currencyLayout);
