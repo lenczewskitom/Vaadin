@@ -1,6 +1,6 @@
 package com.kodilla.vaadin.domain;
 
-import com.kodilla.vaadin.domain.enums.CryptoCurrency;
+import com.kodilla.vaadin.domain.enums.Currency;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,11 +10,11 @@ import java.math.BigDecimal;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class CryptoRatesDto {
+public class CurrencyRatesDto {
 
-    private long cryptoRateId;
+    private long currencyRateId;
     private BigDecimal lastRate;
-
     private BigDecimal rateChange;
-    private CryptoCurrency cryptocurrencyCode;
+    private Currency currencyCode;
+
 }

@@ -1,7 +1,6 @@
 package com.kodilla.vaadin.service;
 
 import com.kodilla.vaadin.domain.AccountBalanceDto;
-import com.kodilla.vaadin.domain.AccountDepositDto;
 import com.kodilla.vaadin.domain.AccountTransactionDto;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -12,6 +11,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+
 
 public class AccountService {
 

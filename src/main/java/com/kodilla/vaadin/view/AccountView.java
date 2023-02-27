@@ -1,7 +1,9 @@
 package com.kodilla.vaadin.view;
 
 import com.kodilla.vaadin.domain.AccountTransactionDto;
+import com.kodilla.vaadin.domain.CryptoRatesDto;
 import com.kodilla.vaadin.service.AccountService;
+import com.kodilla.vaadin.service.CryptoRatesService;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.grid.Grid;
@@ -24,7 +26,8 @@ import java.math.RoundingMode;
 public class AccountView extends VerticalLayout {
 
 
-    private AccountService accountService = AccountService.getInstance();
+    private final AccountService accountService = AccountService.getInstance();
+
     public AccountView() {
         VerticalLayout accountLayout = new VerticalLayout();
         HorizontalLayout depositLayout = new HorizontalLayout();

@@ -26,7 +26,7 @@ public class CryptoService {
     public BigDecimal getCryptoRate(CryptoCurrency cryptoCurrencyCode) {
         URI uri = UriComponentsBuilder.fromHttpUrl("http://localhost:8080/v1/cryptocurrency/rate/" + cryptoCurrencyCode)
                 .build().encode().toUri();
-        return restTemplate.getForObject(uri, CryptoRatesDto.class).getRate();
+        return restTemplate.getForObject(uri, CoinApiResponseDto.class).getRate();
     }
 
     public List<CryptoTransactionDto> getAllTransactions() {
