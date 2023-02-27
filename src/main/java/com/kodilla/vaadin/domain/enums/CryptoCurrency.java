@@ -2,7 +2,7 @@ package com.kodilla.vaadin.domain.enums;
 
 public enum CryptoCurrency {
     BTC,
-    ETH,
+    ETC,
     LTC,
     SOL,
     DOGE

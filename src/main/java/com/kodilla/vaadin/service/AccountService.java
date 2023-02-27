@@ -1,6 +1,7 @@
 package com.kodilla.vaadin.service;
 
 import com.kodilla.vaadin.domain.AccountBalanceDto;
+import com.kodilla.vaadin.domain.AccountDepositDto;
 import com.kodilla.vaadin.domain.AccountTransactionDto;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;

@@ -2,10 +2,8 @@ package com.kodilla.vaadin.service;
 
 import com.kodilla.vaadin.domain.*;
 import com.kodilla.vaadin.domain.enums.CryptoCurrency;
-import com.kodilla.vaadin.domain.enums.Currency;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
-
 import java.math.BigDecimal;
 import java.net.URI;
 import java.util.Arrays;
@@ -44,10 +42,10 @@ public class CryptoService {
     }
 
     public void buyCryptocurrency(BigDecimal accountValue, CryptoCurrency cryptocurrencyCode, BigDecimal cryptocurrencyValue) {
-        URI uri = UriComponentsBuilder.fromHttpUrl("http://localhost:8080/v1/currency/buy")
+        URI uri = UriComponentsBuilder.fromHttpUrl("http://localhost:8080/v1/cryptocurrency/buy")
                 .queryParam("accountValue", accountValue)
-                .queryParam("currencyCode", cryptocurrencyCode)
-                .queryParam("currencyValue", cryptocurrencyValue).build().encode().toUri();
+                .queryParam("cryptoCurrencyCode", cryptocurrencyCode)
+                .queryParam("cryptocurrencyValue", cryptocurrencyValue).build().encode().toUri();
         restTemplate.postForObject(uri, null, CryptoTransactionDto.class);
     }
 

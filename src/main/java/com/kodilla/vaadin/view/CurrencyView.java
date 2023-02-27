@@ -52,18 +52,18 @@ public class CurrencyView extends HorizontalLayout {
             BigDecimal accountValue = currencyAmount.getValue().multiply(currencyService.getExchangeRate(currency.getValue()));
             if (accountService.getBalance().compareTo(accountValue) < 0) {
                 Notification notification = Notification
-                        .show("Not enugh money on the account");
+                        .show("Not enough money on the account");
                 notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
                 notification.setPosition(Notification.Position.TOP_CENTER);
             } else {
                 currencyService.buyCurrency(accountValue, currency.getValue(),currencyAmount.getValue());
                 currencyGrid.setItems(currencyService.getAllTransactions());
                 accountBalanceValue.setText(getBalance());
-                UI.getCurrent().getPage().reload();
                 Notification notification = Notification
                         .show(currencyAmount.getValue() + " " + currency.getValue() + " added to the account");
                 notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 notification.setPosition(Notification.Position.TOP_CENTER);
+                currencyGrid.getDataProvider().refreshAll();
             }
             currencyAmount.clear();
             currency.clear();
@@ -73,19 +73,20 @@ public class CurrencyView extends HorizontalLayout {
         sell.addClickListener(click -> {
             if (currencyService.getCurrencyBalance(currency.getValue()).getBalance().compareTo(currencyAmount.getValue()) < 0) {
                 Notification notification = Notification
-                        .show("Not enugh currency on the account");
+                        .show("Not enough currency on the account");
                 notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
                 notification.setPosition(Notification.Position.TOP_CENTER);
             } else {
                 BigDecimal accountValue = currencyAmount.getValue().multiply(currencyService.getExchangeRate(currency.getValue()));
                 currencyService.sellCurrency(accountValue, currency.getValue(),currencyAmount.getValue());
                 currencyGrid.setItems(currencyService.getAllTransactions());
+                currencyGrid.getDataProvider().refreshAll();
                 accountBalanceValue.setText(getBalance());
-                UI.getCurrent().getPage().reload();
                 Notification notification = Notification
                         .show(currencyAmount.getValue() + " " + currency.getValue() + " sold from the account");
                 notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 notification.setPosition(Notification.Position.TOP_CENTER);
+                //UI.getCurrent().getPage().reload();
             }
             currencyAmount.clear();
             currency.clear();
@@ -112,7 +113,7 @@ public class CurrencyView extends HorizontalLayout {
 
         H3 depositHistory = new H3("Transactions history");
         currencyGrid.setItems(currencyService.getAllTransactions());
-        currencyGrid.setColumns("transactionId", "transactionDate", "transactionAccountValue", "currencyCode", "transactionCurrencyValue");
+        currencyGrid.setColumns("transactionDate", "transactionAccountValue", "currencyCode", "transactionCurrencyValue");
 
         currencyLayout.add(topLayout, depositHistory, currencyGrid);
         add(currencyLayout);
@@ -122,4 +123,7 @@ public class CurrencyView extends HorizontalLayout {
         return accountService.getBalance().setScale(2, RoundingMode.CEILING) + " zł";
     }
 
+    public void refresh() {
+
+    }
 }

@@ -74,4 +74,5 @@ public class AccountView extends VerticalLayout {
         getBalance();
 
     }
+
 }
