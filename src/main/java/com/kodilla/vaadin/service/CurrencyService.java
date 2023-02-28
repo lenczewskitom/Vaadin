@@ -1,6 +1,7 @@
 package com.kodilla.vaadin.service;
 
 import com.kodilla.vaadin.domain.CurrencyBalanceDto;
+import com.kodilla.vaadin.domain.CurrencyRatesDto;
 import com.kodilla.vaadin.domain.CurrencyTransactionDto;
 import com.kodilla.vaadin.domain.RatesDto;
 import com.kodilla.vaadin.domain.enums.Currency;
@@ -38,10 +39,29 @@ public class CurrencyService {
         return Optional.ofNullable(response).map(Arrays::asList).orElse(Collections.emptyList());
     }
 
+    public BigDecimal getAllSavings() {
+        URI uri = UriComponentsBuilder.fromHttpUrl("http://localhost:8080/v1/currency/all").build().encode().toUri();
+        return restTemplate.getForObject(uri, BigDecimal.class);
+    }
+
     public CurrencyBalanceDto getCurrencyBalance(Currency currency) {
         URI uri = UriComponentsBuilder.fromHttpUrl("http://localhost:8080/v1/currency/balance/" + currency)
                 .build().encode().toUri();
         return restTemplate.getForObject(uri, CurrencyBalanceDto.class);
+    }
+
+    public List<CurrencyBalanceDto> getAllCurrencyBalanceList() {
+        URI uri = UriComponentsBuilder.fromHttpUrl("http://localhost:8080/v1/currency/balanceList")
+                .build().encode().toUri();
+        CurrencyBalanceDto[] response = restTemplate.getForObject(uri, CurrencyBalanceDto[].class);
+        return Optional.ofNullable(response).map(Arrays::asList).orElse(Collections.emptyList());
+    }
+
+    public List<CurrencyRatesDto> getAllCurrencyRatesList() {
+        URI uri = UriComponentsBuilder.fromHttpUrl("http://localhost:8080/v1/currency/ratesList")
+                .build().encode().toUri();
+        CurrencyRatesDto[] response = restTemplate.getForObject(uri, CurrencyRatesDto[].class);
+        return Optional.ofNullable(response).map(Arrays::asList).orElse(Collections.emptyList());
     }
 
     public void buyCurrency(BigDecimal accountValue, Currency currencyCode, BigDecimal currencyValue) {

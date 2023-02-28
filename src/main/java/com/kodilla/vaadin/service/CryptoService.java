@@ -41,6 +41,11 @@ public class CryptoService {
         return restTemplate.getForObject(uri, CryptoBalanceDto.class);
     }
 
+    public BigDecimal getAllSavings() {
+        URI uri = UriComponentsBuilder.fromHttpUrl("http://localhost:8080/v1/cryptocurrency/all").build().encode().toUri();
+        return restTemplate.getForObject(uri, BigDecimal.class);
+    }
+
     public void buyCryptocurrency(BigDecimal accountValue, CryptoCurrency cryptocurrencyCode, BigDecimal cryptocurrencyValue) {
         URI uri = UriComponentsBuilder.fromHttpUrl("http://localhost:8080/v1/cryptocurrency/buy")
                 .queryParam("accountValue", accountValue)

@@ -46,6 +46,7 @@ public class CryptoView extends HorizontalLayout {
 
         H3 exchangeCryptoCurrency = new H3("Exchange Cryptocurrency");
         BigDecimalField cryptocurrencyAmount = new BigDecimalField("Amount");
+        cryptocurrencyAmount.setPlaceholder("Enter value");
         ComboBox<CryptoCurrency> cryptocurrency = new ComboBox<>("Cryptocurrency");
         cryptocurrency.setItems(CryptoCurrency.values());
         amountLayout.add(cryptocurrencyAmount, cryptocurrency);
@@ -59,17 +60,36 @@ public class CryptoView extends HorizontalLayout {
                 notification.setPosition(Notification.Position.TOP_CENTER);
             } else {
                 cryptoService.buyCryptocurrency(accountValue, cryptocurrency.getValue(), cryptocurrencyAmount.getValue());
-                accountBalanceValue.setText(getBalance());
-                cryptoGrid.setItems(cryptoService.getAllTransactions());
-                cryptoGrid.getDataProvider().refreshAll();
                 Notification notification = Notification
                         .show(cryptocurrencyAmount.getValue() + " " + cryptocurrency.getValue() + " added to the account");
                 notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 notification.setPosition(Notification.Position.TOP_CENTER);
             }
+            cryptocurrencyAmount.clear();
+            cryptocurrency.clear();
         });
 
         Button sell = new Button("Sell");
+        sell.addClickListener(click -> {
+            if (cryptoService.getCryptoBalance(cryptocurrency.getValue()).getBalance().compareTo(cryptocurrencyAmount.getValue()) < 0) {
+                Notification notification = Notification
+                        .show("Not enough currency on the account");
+                notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+                notification.setPosition(Notification.Position.TOP_CENTER);
+            } else {
+                BigDecimal accountValue = cryptocurrencyAmount.getValue().multiply(cryptoService.getCryptoRate(cryptocurrency.getValue()));
+                cryptoService.sellCurrency(accountValue, cryptocurrency.getValue(),cryptocurrencyAmount.getValue());
+                cryptoGrid.setItems(cryptoService.getAllTransactions());
+                cryptoGrid.getDataProvider().refreshAll();
+                accountBalanceValue.setText(getBalance());
+                Notification notification = Notification
+                        .show(cryptocurrencyAmount.getValue() + " " + cryptocurrency.getValue() + " sold from the account");
+                notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                notification.setPosition(Notification.Position.TOP_CENTER);
+            }
+            cryptocurrencyAmount.clear();
+            cryptocurrency.clear();
+        });
 
         buttonsLayout.add(buy, sell);
         exchangeLayout.add(accountBalance, accountBalanceValue, exchangeCryptoCurrency, amountLayout, buttonsLayout);
@@ -103,5 +123,11 @@ public class CryptoView extends HorizontalLayout {
 
     public String getBalance() {
         return accountService.getBalance().setScale(2, RoundingMode.CEILING) + " zł";
+    }
+
+    public void refresh(Grid<CryptoTransactionDto> cryptoGrid, Label accountBalanceValue) {
+        cryptoGrid.setItems(cryptoService.getAllTransactions());
+        cryptoGrid.getDataProvider().refreshAll();
+        accountBalanceValue.setText(getBalance());
     }
 }

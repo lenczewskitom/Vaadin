@@ -31,6 +31,7 @@ public class AccountView extends VerticalLayout {
     public AccountView() {
         VerticalLayout accountLayout = new VerticalLayout();
         HorizontalLayout depositLayout = new HorizontalLayout();
+        HorizontalLayout withdrawLayout = new HorizontalLayout();
         Grid<AccountTransactionDto> accountGrid = new Grid<>(AccountTransactionDto.class);
 
         H3 accountBalance = new H3("Actual account balance");
@@ -44,7 +45,6 @@ public class AccountView extends VerticalLayout {
         Div depositSuffix = new Div();
         depositSuffix.setText("zł");
         depositValue.setSuffixComponent(depositSuffix);
-        depositValue.setSuffixComponent(depositSuffix);
         Button addDeposit = new Button("Add money");
         addDeposit.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         addDeposit.addClickListener(click -> {
@@ -57,14 +57,36 @@ public class AccountView extends VerticalLayout {
             notification.setPosition(Notification.Position.TOP_CENTER);
             depositValue.clear();
         });
+
+        BigDecimalField withdrawValue = new BigDecimalField("Withdraw");
+        withdrawValue.setPlaceholder("Enter value");
+        withdrawValue.setWidth("800");
+        withdrawValue.setClearButtonVisible(true);
+        Div withdrawSuffix = new Div();
+        withdrawSuffix.setText("zł");
+        withdrawValue.setSuffixComponent(withdrawSuffix);
+        Button withdrawDeposit = new Button("Withdraw money");
+        withdrawDeposit.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        withdrawDeposit.addClickListener(click -> {
+            accountService.addDeposit(withdrawValue.getValue().negate());
+            accountGrid.setItems(accountService.getAllDeposits());
+            accountBalanceValue.setText(getBalance());
+            Notification notification = Notification
+                    .show(withdrawValue.getValue() + " zł withdraw from account");
+            notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+            notification.setPosition(Notification.Position.TOP_CENTER);
+            withdrawValue.clear();
+        });
         depositLayout.add(depositValue, addDeposit);
+        withdrawLayout.add(withdrawValue, withdrawDeposit);
         depositLayout.setAlignItems(Alignment.BASELINE);
+        withdrawLayout.setAlignItems(Alignment.BASELINE);
 
         H3 depositHistory = new H3("Deposit history");
         accountGrid.setItems(accountService.getAllDeposits());
         accountGrid.setColumns("depositId", "depositDate", "depositValue");
 
-        accountLayout.add(accountBalance,accountBalanceValue, deposit, depositLayout,depositHistory, accountGrid);
+        accountLayout.add(accountBalance,accountBalanceValue, deposit, depositLayout, withdrawLayout, depositHistory, accountGrid);
         add(accountLayout);
     }
 

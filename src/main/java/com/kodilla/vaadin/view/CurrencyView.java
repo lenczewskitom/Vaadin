@@ -1,10 +1,11 @@
 package com.kodilla.vaadin.view;
 
+import com.kodilla.vaadin.domain.CurrencyBalanceDto;
+import com.kodilla.vaadin.domain.CurrencyRatesDto;
 import com.kodilla.vaadin.domain.CurrencyTransactionDto;
 import com.kodilla.vaadin.domain.enums.Currency;
 import com.kodilla.vaadin.service.AccountService;
 import com.kodilla.vaadin.service.CurrencyService;
-import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.grid.Grid;
@@ -37,13 +38,21 @@ public class CurrencyView extends HorizontalLayout {
         HorizontalLayout topLayout = new HorizontalLayout();
         HorizontalLayout amountLayout = new HorizontalLayout();
         HorizontalLayout buttonsLayout = new HorizontalLayout();
+
         Grid<CurrencyTransactionDto> currencyGrid = new Grid<>(CurrencyTransactionDto.class);
+        Grid<CurrencyBalanceDto> balanceGrid = new Grid<>(CurrencyBalanceDto.class, false);
+        balanceGrid.addColumn(CurrencyBalanceDto::getCurrencyCode).setHeader("Currency");
+        balanceGrid.addColumn(CurrencyBalanceDto::getBalance).setHeader("Balance");
+        Grid<CurrencyRatesDto> ratesGrid = new Grid<>(CurrencyRatesDto.class, false);
+        ratesGrid.addColumn(CurrencyRatesDto::getCurrencyCode).setHeader("Currency");
+        ratesGrid.addColumn(CurrencyRatesDto::getLastRate).setHeader("Rate");
 
         H3 accountBalance = new H3("Actual account balance");
         Label accountBalanceValue = new Label(getBalance());
 
         H3 exchangeCurrency = new H3("Exchange Currency");
         BigDecimalField currencyAmount = new BigDecimalField("Amount");
+        currencyAmount.setPlaceholder("Enter value");
         ComboBox<Currency> currency = new ComboBox<>("Currency");
         currency.setItems(Currency.values());
         amountLayout.add(currencyAmount, currency);
@@ -58,12 +67,11 @@ public class CurrencyView extends HorizontalLayout {
             } else {
                 currencyService.buyCurrency(accountValue, currency.getValue(),currencyAmount.getValue());
                 currencyGrid.setItems(currencyService.getAllTransactions());
-                accountBalanceValue.setText(getBalance());
+                refresh(currencyGrid, balanceGrid, ratesGrid, accountBalanceValue);
                 Notification notification = Notification
                         .show(currencyAmount.getValue() + " " + currency.getValue() + " added to the account");
                 notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 notification.setPosition(Notification.Position.TOP_CENTER);
-                currencyGrid.getDataProvider().refreshAll();
             }
             currencyAmount.clear();
             currency.clear();
@@ -79,14 +87,11 @@ public class CurrencyView extends HorizontalLayout {
             } else {
                 BigDecimal accountValue = currencyAmount.getValue().multiply(currencyService.getExchangeRate(currency.getValue()));
                 currencyService.sellCurrency(accountValue, currency.getValue(),currencyAmount.getValue());
-                currencyGrid.setItems(currencyService.getAllTransactions());
-                currencyGrid.getDataProvider().refreshAll();
-                accountBalanceValue.setText(getBalance());
+                refresh(currencyGrid, balanceGrid, ratesGrid, accountBalanceValue);
                 Notification notification = Notification
                         .show(currencyAmount.getValue() + " " + currency.getValue() + " sold from the account");
                 notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 notification.setPosition(Notification.Position.TOP_CENTER);
-                //UI.getCurrent().getPage().reload();
             }
             currencyAmount.clear();
             currency.clear();
@@ -95,20 +100,20 @@ public class CurrencyView extends HorizontalLayout {
         exchangeLayout.add(accountBalance, accountBalanceValue, exchangeCurrency, amountLayout, buttonsLayout);
 
         H3 currencyBalance = new H3("Currencies balance");
-        Label eur = new Label(Currency.EUR + " - " + currencyService.getCurrencyBalance(Currency.EUR).getBalance().setScale(2, RoundingMode.CEILING));
-        Label usd = new Label(Currency.USD + " - " + currencyService.getCurrencyBalance(Currency.USD).getBalance().setScale(2, RoundingMode.CEILING));
-        Label gbp = new Label(Currency.GBP + " - " + currencyService.getCurrencyBalance(Currency.GBP).getBalance().setScale(2, RoundingMode.CEILING));
-        Label chf = new Label(Currency.CHF + " - " + currencyService.getCurrencyBalance(Currency.CHF).getBalance().setScale(2, RoundingMode.CEILING));
-        Label cny = new Label(Currency.CNY + " - " + currencyService.getCurrencyBalance(Currency.CNY).getBalance().setScale(2, RoundingMode.CEILING));
-        balanceLayout.add(currencyBalance, eur, usd, gbp, chf, cny);
+        balanceGrid.setItems(currencyService.getAllCurrencyBalanceList());
+        balanceGrid.setHeightByRows(true);
+        balanceLayout.add(currencyBalance, balanceGrid);
 
         H3 rates = new H3("Actual rates");
-        Label euro = new Label(Currency.EUR + " - " + currencyService.getExchangeRate( Currency.EUR));
-        Label dolar = new Label(Currency.USD + " - " + currencyService.getExchangeRate(Currency.USD));
-        Label funt = new Label(Currency.GBP + " - " + currencyService.getExchangeRate(Currency.GBP));
-        Label frank = new Label(Currency.CHF + " - " + currencyService.getExchangeRate(Currency.CHF));
-        Label juan = new Label(Currency.CNY + " - " + currencyService.getExchangeRate(Currency.CNY));
-        ratesLayout.add(rates, euro, dolar, funt, frank, juan);
+        ratesGrid.setItems(currencyService.getAllCurrencyRatesList());
+        ratesGrid.setHeightByRows(true);
+        ratesLayout.add(rates, ratesGrid);
+//        Label euro = new Label(Currency.EUR + " - " + currencyService.getExchangeRate(Currency.EUR));
+//        Label dolar = new Label(Currency.USD + " - " + currencyService.getExchangeRate(Currency.USD));
+//        Label funt = new Label(Currency.GBP + " - " + currencyService.getExchangeRate(Currency.GBP));
+//        Label frank = new Label(Currency.CHF + " - " + currencyService.getExchangeRate(Currency.CHF));
+//        Label juan = new Label(Currency.CNY + " - " + currencyService.getExchangeRate(Currency.CNY));
+//        ratesLayout.add(rates, euro, dolar, funt, frank, juan);
         topLayout.add(exchangeLayout, balanceLayout, ratesLayout);
 
         H3 depositHistory = new H3("Transactions history");
@@ -123,7 +128,13 @@ public class CurrencyView extends HorizontalLayout {
         return accountService.getBalance().setScale(2, RoundingMode.CEILING) + " zł";
     }
 
-    public void refresh() {
-
+    public void refresh(Grid<CurrencyTransactionDto> currencyGrid, Grid<CurrencyBalanceDto> balanceGrid, Grid<CurrencyRatesDto> ratesGrid, Label accountBalanceValue) {
+        accountBalanceValue.setText(getBalance());
+        currencyGrid.setItems(currencyService.getAllTransactions());
+        currencyGrid.getDataProvider().refreshAll();
+        balanceGrid.setItems(currencyService.getAllCurrencyBalanceList());
+        balanceGrid.getDataProvider().refreshAll();
+        ratesGrid.setItems(currencyService.getAllCurrencyRatesList());
+        ratesGrid.getDataProvider().refreshAll();
     }
 }

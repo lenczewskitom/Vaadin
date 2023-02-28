@@ -12,6 +12,11 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 public class CurrencyRatesDto {
 
+    public CurrencyRatesDto(BigDecimal lastRate, Currency currencyCode) {
+        this.lastRate = lastRate;
+        this.currencyCode = currencyCode;
+    }
+
     private long currencyRateId;
     private BigDecimal lastRate;
     private BigDecimal rateChange;
