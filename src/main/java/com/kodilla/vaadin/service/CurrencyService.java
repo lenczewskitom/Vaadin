@@ -1,10 +1,9 @@
 package com.kodilla.vaadin.service;
 
-import com.kodilla.vaadin.domain.CurrencyBalanceDto;
-import com.kodilla.vaadin.domain.CurrencyRatesDto;
-import com.kodilla.vaadin.domain.CurrencyTransactionDto;
-import com.kodilla.vaadin.domain.RatesDto;
+import com.kodilla.vaadin.domain.*;
+import com.kodilla.vaadin.domain.enums.CryptoCurrency;
 import com.kodilla.vaadin.domain.enums.Currency;
+import com.kodilla.vaadin.domain.enums.Order;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -78,5 +77,40 @@ public class CurrencyService {
                 .queryParam("currencyCode", currencyCode)
                 .queryParam("currencyValue", currencyValue).build().encode().toUri();
         restTemplate.postForObject(uri, null, CurrencyTransactionDto.class);
+    }
+
+    public void addCurrencyOrder(BigDecimal currencyValue, Currency currencyCode,
+                                 BigDecimal currencyRate, Order operationType) {
+        URI uri = UriComponentsBuilder.fromHttpUrl("http://localhost:8080/v1/currencyOrder")
+                .queryParam("currencyValue", currencyValue)
+                .queryParam("currencyCode", currencyCode)
+                .queryParam("currencyRate", currencyRate)
+                .queryParam("operationType", operationType).build().encode().toUri();
+        restTemplate.postForObject(uri, null, CurrencyOrderDto.class);
+    }
+
+    public List<CurrencyOrderDto> getAllCurrencyOrdersList() {
+        URI uri = UriComponentsBuilder.fromHttpUrl("http://localhost:8080/v1/currencyOrder")
+                .build().encode().toUri();
+        CurrencyOrderDto[] response = restTemplate.getForObject(uri, CurrencyOrderDto[].class);
+        return Optional.ofNullable(response).map(Arrays::asList).orElse(Collections.emptyList());
+    }
+
+    public BigDecimal getAllOrdersAccountValue() {
+        URI uri = UriComponentsBuilder.fromHttpUrl("http://localhost:8080/v1/currencyOrder/ordersValue")
+                .build().encode().toUri();
+        return restTemplate.getForObject(uri, BigDecimal.class);
+    }
+
+    public BigDecimal getAllOrdersCurrencyValue(Currency currencyCode) {
+        URI uri = UriComponentsBuilder.fromHttpUrl("http://localhost:8080/v1/currencyOrder/currencyValue/" + currencyCode)
+                .build().encode().toUri();
+        return restTemplate.getForObject(uri, BigDecimal.class);
+    }
+
+    public void deleteCurrencyOrder(Long id) {
+        URI uri = UriComponentsBuilder.fromHttpUrl("http://localhost:8080/v1/currencyOrder/" + id)
+                .build().encode().toUri();
+                restTemplate.delete(uri);
     }
 }

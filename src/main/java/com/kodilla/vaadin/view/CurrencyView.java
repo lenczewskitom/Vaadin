@@ -1,9 +1,11 @@
 package com.kodilla.vaadin.view;
 
 import com.kodilla.vaadin.domain.CurrencyBalanceDto;
+import com.kodilla.vaadin.domain.CurrencyOrderDto;
 import com.kodilla.vaadin.domain.CurrencyRatesDto;
 import com.kodilla.vaadin.domain.CurrencyTransactionDto;
 import com.kodilla.vaadin.domain.enums.Currency;
+import com.kodilla.vaadin.domain.enums.Order;
 import com.kodilla.vaadin.service.AccountService;
 import com.kodilla.vaadin.service.CurrencyService;
 import com.vaadin.flow.component.button.Button;
@@ -19,6 +21,7 @@ import com.vaadin.flow.component.textfield.BigDecimalField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
+import javax.swing.*;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
@@ -35,9 +38,13 @@ public class CurrencyView extends HorizontalLayout {
         VerticalLayout exchangeLayout = new VerticalLayout();
         VerticalLayout balanceLayout = new VerticalLayout();
         VerticalLayout ratesLayout = new VerticalLayout();
+        VerticalLayout ordersLayout = new VerticalLayout();
         HorizontalLayout topLayout = new HorizontalLayout();
         HorizontalLayout amountLayout = new HorizontalLayout();
         HorizontalLayout buttonsLayout = new HorizontalLayout();
+        HorizontalLayout orderAmountLayout = new HorizontalLayout();
+        HorizontalLayout orderRateLayout = new HorizontalLayout();
+        HorizontalLayout orderButtonsLayout = new HorizontalLayout();
 
         Grid<CurrencyTransactionDto> currencyGrid = new Grid<>(CurrencyTransactionDto.class);
         Grid<CurrencyBalanceDto> balanceGrid = new Grid<>(CurrencyBalanceDto.class, false);
@@ -46,6 +53,12 @@ public class CurrencyView extends HorizontalLayout {
         Grid<CurrencyRatesDto> ratesGrid = new Grid<>(CurrencyRatesDto.class, false);
         ratesGrid.addColumn(CurrencyRatesDto::getCurrencyCode).setHeader("Currency");
         ratesGrid.addColumn(CurrencyRatesDto::getLastRate).setHeader("Rate");
+        Grid<CurrencyOrderDto> ordersGrid = new Grid<>(CurrencyOrderDto.class,false);
+        ordersGrid.addColumn(CurrencyOrderDto::getCurrencyOrderDate).setHeader("Date").setAutoWidth(true);
+        ordersGrid.addColumn(CurrencyOrderDto::getCurrencyCode).setHeader("Currency");
+        ordersGrid.addColumn(CurrencyOrderDto::getOrderCurrencyValue).setHeader("Amount");
+        ordersGrid.addColumn(CurrencyOrderDto::getCurrencyRate).setHeader("Rate");
+        ordersGrid.addColumn(CurrencyOrderDto::getOperationType).setHeader("Type");
 
         H3 accountBalance = new H3("Actual account balance");
         Label accountBalanceValue = new Label(getBalance());
@@ -60,10 +73,7 @@ public class CurrencyView extends HorizontalLayout {
         buy.addClickListener(click -> {
             BigDecimal accountValue = currencyAmount.getValue().multiply(currencyService.getExchangeRate(currency.getValue()));
             if (accountService.getBalance().compareTo(accountValue) < 0) {
-                Notification notification = Notification
-                        .show("Not enough money on the account");
-                notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
-                notification.setPosition(Notification.Position.TOP_CENTER);
+                sendErrorNotification("Not enough money on the account");
             } else {
                 currencyService.buyCurrency(accountValue, currency.getValue(),currencyAmount.getValue());
                 currencyGrid.setItems(currencyService.getAllTransactions());
@@ -73,17 +83,13 @@ public class CurrencyView extends HorizontalLayout {
                 notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 notification.setPosition(Notification.Position.TOP_CENTER);
             }
-            currencyAmount.clear();
-            currency.clear();
+            exchangeClear(currencyAmount, currency);
         });
 
         Button sell = new Button("Sell");
         sell.addClickListener(click -> {
             if (currencyService.getCurrencyBalance(currency.getValue()).getBalance().compareTo(currencyAmount.getValue()) < 0) {
-                Notification notification = Notification
-                        .show("Not enough currency on the account");
-                notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
-                notification.setPosition(Notification.Position.TOP_CENTER);
+                sendErrorNotification("Not enough currency on the account");
             } else {
                 BigDecimal accountValue = currencyAmount.getValue().multiply(currencyService.getExchangeRate(currency.getValue()));
                 currencyService.sellCurrency(accountValue, currency.getValue(),currencyAmount.getValue());
@@ -93,13 +99,69 @@ public class CurrencyView extends HorizontalLayout {
                 notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 notification.setPosition(Notification.Position.TOP_CENTER);
             }
-            currencyAmount.clear();
-            currency.clear();
+            exchangeClear(currencyAmount, currency);
         });
         buttonsLayout.add(buy, sell);
-        exchangeLayout.add(accountBalance, accountBalanceValue, exchangeCurrency, amountLayout, buttonsLayout);
 
-        H3 currencyBalance = new H3("Currencies balance");
+        H3 orderCurrency = new H3("Order Currency");
+        BigDecimalField orderCurrencyAmount = new BigDecimalField("Amount");
+        orderCurrencyAmount.setPlaceholder("Enter value");
+        ComboBox<Currency> orderCombobox = new ComboBox<>("Currency");
+        orderCombobox.setItems(Currency.values());
+        orderAmountLayout.add(orderCurrencyAmount, orderCombobox);
+        BigDecimalField orderCurrencyRate = new BigDecimalField("Rate");
+        orderCurrencyRate.setPlaceholder("Enter value");
+        ComboBox<Order> orderType = new ComboBox<>("Type");
+        orderType.setItems(Order.values());
+        orderRateLayout.add(orderCurrencyRate, orderType);
+        Button orderBuy = new Button("Buy");
+        orderBuy.addClickListener(click -> {
+            BigDecimal currencyValue  = orderCurrencyAmount.getValue().multiply(currencyService.getExchangeRate(orderCombobox.getValue()));
+            if (accountService.getBalance().compareTo(currencyValue.add(currencyService.getAllOrdersAccountValue())) < 0) {
+                sendErrorNotification("Not enough money on the account");
+            } else {
+                currencyService.addCurrencyOrder(orderCurrencyAmount.getValue(), orderCombobox.getValue(), orderCurrencyRate.getValue(), orderType.getValue());
+                ordersGrid.setItems(currencyService.getAllCurrencyOrdersList());
+                ordersGrid.getDataProvider().refreshAll();
+                Notification notification = Notification
+                        .show("Added new currency order");
+                notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                notification.setPosition(Notification.Position.TOP_CENTER);
+            }
+            orderClear(orderCurrencyAmount,orderCombobox, orderCurrencyRate, orderType);
+        });
+
+        Button orderSell = new Button("Sell");
+        orderSell.addClickListener(click -> {
+            if (currencyService.getCurrencyBalance(orderCombobox.getValue()).getBalance()
+                    .compareTo(orderCurrencyAmount.getValue().add(currencyService.getAllOrdersCurrencyValue(orderCombobox.getValue()))) < 0) {
+                sendErrorNotification("Not enough currency on the account");
+            } else {
+                addOrder(orderCurrencyAmount,orderCombobox, orderCurrencyRate, orderType, ordersGrid);
+            }
+            orderClear(orderCurrencyAmount,orderCombobox, orderCurrencyRate, orderType);
+        });
+
+        Button deleteOrder = new Button("Delete order");
+        deleteOrder.addClickListener(click -> {
+            if (ordersGrid.getSelectionModel().getFirstSelectedItem().isEmpty()) {
+                sendErrorNotification("Select order to delete");
+            } else {
+                currencyService.deleteCurrencyOrder(ordersGrid.getSelectionModel().getFirstSelectedItem().get().getCurrencyOrderId());
+                Notification notification = Notification
+                        .show("Order removed");
+                notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                notification.setPosition(Notification.Position.TOP_CENTER);
+                ordersGrid.setItems(currencyService.getAllCurrencyOrdersList());
+                ordersGrid.getDataProvider().refreshAll();
+            }
+        });
+
+        orderButtonsLayout.add(orderBuy, orderSell, deleteOrder);
+        exchangeLayout.add(accountBalance, accountBalanceValue, exchangeCurrency, amountLayout, buttonsLayout, orderCurrency, orderAmountLayout,
+                orderRateLayout, orderButtonsLayout);
+
+        H3 currencyBalance = new H3("Actual balance");
         balanceGrid.setItems(currencyService.getAllCurrencyBalanceList());
         balanceGrid.setHeightByRows(true);
         balanceLayout.add(currencyBalance, balanceGrid);
@@ -108,13 +170,13 @@ public class CurrencyView extends HorizontalLayout {
         ratesGrid.setItems(currencyService.getAllCurrencyRatesList());
         ratesGrid.setHeightByRows(true);
         ratesLayout.add(rates, ratesGrid);
-//        Label euro = new Label(Currency.EUR + " - " + currencyService.getExchangeRate(Currency.EUR));
-//        Label dolar = new Label(Currency.USD + " - " + currencyService.getExchangeRate(Currency.USD));
-//        Label funt = new Label(Currency.GBP + " - " + currencyService.getExchangeRate(Currency.GBP));
-//        Label frank = new Label(Currency.CHF + " - " + currencyService.getExchangeRate(Currency.CHF));
-//        Label juan = new Label(Currency.CNY + " - " + currencyService.getExchangeRate(Currency.CNY));
-//        ratesLayout.add(rates, euro, dolar, funt, frank, juan);
-        topLayout.add(exchangeLayout, balanceLayout, ratesLayout);
+
+        H3 orders = new H3("Actual orders");
+        ordersGrid.setItems(currencyService.getAllCurrencyOrdersList());
+        ordersGrid.setHeightByRows(true);
+
+        ordersLayout.add(orders, ordersGrid);
+        topLayout.add(exchangeLayout, balanceLayout, ratesLayout, ordersLayout);
 
         H3 depositHistory = new H3("Transactions history");
         currencyGrid.setItems(currencyService.getAllTransactions());
@@ -126,6 +188,37 @@ public class CurrencyView extends HorizontalLayout {
 
     public String getBalance() {
         return accountService.getBalance().setScale(2, RoundingMode.CEILING) + " zł";
+    }
+
+    public void addOrder(BigDecimalField orderCurrencyAmount, ComboBox<Currency> orderCombobox, BigDecimalField orderCurrencyRate,
+                         ComboBox<Order> orderType, Grid<CurrencyOrderDto> ordersGrid) {
+        currencyService.addCurrencyOrder(orderCurrencyAmount.getValue(), orderCombobox.getValue(), orderCurrencyRate.getValue(), orderType.getValue());
+        ordersGrid.setItems(currencyService.getAllCurrencyOrdersList());
+        ordersGrid.getDataProvider().refreshAll();
+        Notification notification = Notification
+                .show("Added new currency order");
+        notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+        notification.setPosition(Notification.Position.TOP_CENTER);
+    }
+
+    public void exchangeClear(BigDecimalField currencyAmount, ComboBox<Currency> currency) {
+        currencyAmount.clear();
+        currency.clear();
+    }
+
+    public void orderClear(BigDecimalField orderCurrencyAmount, ComboBox<Currency> orderCombobox, BigDecimalField orderCurrencyRate,
+                           ComboBox<Order> orderType) {
+        orderCurrencyAmount.clear();
+        orderCombobox.clear();
+        orderCurrencyRate.clear();
+        orderType.clear();
+    }
+
+    public void sendErrorNotification(String info) {
+        Notification notification = Notification
+                .show(info);
+        notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+        notification.setPosition(Notification.Position.TOP_CENTER);
     }
 
     public void refresh(Grid<CurrencyTransactionDto> currencyGrid, Grid<CurrencyBalanceDto> balanceGrid, Grid<CurrencyRatesDto> ratesGrid, Label accountBalanceValue) {

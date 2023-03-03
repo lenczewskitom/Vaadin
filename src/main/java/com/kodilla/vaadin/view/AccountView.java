@@ -68,13 +68,20 @@ public class AccountView extends VerticalLayout {
         Button withdrawDeposit = new Button("Withdraw money");
         withdrawDeposit.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         withdrawDeposit.addClickListener(click -> {
-            accountService.addDeposit(withdrawValue.getValue().negate());
-            accountGrid.setItems(accountService.getAllDeposits());
-            accountBalanceValue.setText(getBalance());
-            Notification notification = Notification
-                    .show(withdrawValue.getValue() + " zł withdraw from account");
-            notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-            notification.setPosition(Notification.Position.TOP_CENTER);
+            if (withdrawValue.getValue().compareTo(accountService.getBalance()) > 0) {
+                Notification notification = Notification
+                        .show("Not enough money on account");
+                notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+                notification.setPosition(Notification.Position.TOP_CENTER);
+            } else {
+                accountService.addDeposit(withdrawValue.getValue().negate());
+                accountGrid.setItems(accountService.getAllDeposits());
+                accountBalanceValue.setText(getBalance());
+                Notification notification = Notification
+                        .show(withdrawValue.getValue() + " zł withdraw from account");
+                notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                notification.setPosition(Notification.Position.TOP_CENTER);
+            }
             withdrawValue.clear();
         });
         depositLayout.add(depositValue, addDeposit);

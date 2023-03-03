@@ -1,10 +1,10 @@
 package com.kodilla.vaadin.view;
 
-import com.kodilla.vaadin.domain.CryptoTransactionDto;
+import com.kodilla.vaadin.domain.*;
 import com.kodilla.vaadin.domain.enums.CryptoCurrency;
+import com.kodilla.vaadin.domain.enums.Order;
 import com.kodilla.vaadin.service.AccountService;
 import com.kodilla.vaadin.service.CryptoService;
-import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.grid.Grid;
@@ -14,7 +14,6 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.page.Push;
 import com.vaadin.flow.component.textfield.BigDecimalField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
@@ -26,20 +25,35 @@ import java.math.RoundingMode;
 @PageTitle("Crypto | Savings App")
 public class CryptoView extends HorizontalLayout {
 
-    private AccountService accountService= AccountService.getInstance();
-    private CryptoService cryptoService = CryptoService.getInstance();
+    private final AccountService accountService= AccountService.getInstance();
+    private final CryptoService cryptoService = CryptoService.getInstance();
 
     public CryptoView() {
         VerticalLayout cryptoLayout = new VerticalLayout();
         VerticalLayout exchangeLayout = new VerticalLayout();
         VerticalLayout balanceLayout = new VerticalLayout();
         VerticalLayout ratesLayout = new VerticalLayout();
+        VerticalLayout ordersLayout = new VerticalLayout();
         HorizontalLayout topLayout = new HorizontalLayout();
         HorizontalLayout amountLayout = new HorizontalLayout();
         HorizontalLayout buttonsLayout = new HorizontalLayout();
+        HorizontalLayout orderAmountLayout = new HorizontalLayout();
+        HorizontalLayout orderRateLayout = new HorizontalLayout();
+        HorizontalLayout orderButtonsLayout = new HorizontalLayout();
 
         Grid<CryptoTransactionDto> cryptoGrid = new Grid<>(CryptoTransactionDto.class);
-        cryptoGrid.setItems(cryptoService.getAllTransactions());
+        Grid<CryptoBalanceDto> balanceGrid = new Grid<>(CryptoBalanceDto.class, false);
+        balanceGrid.addColumn(CryptoBalanceDto::getCryptocurrencyCode).setHeader("Cryptocurrency").setAutoWidth(true);
+        balanceGrid.addColumn(CryptoBalanceDto::getBalance).setHeader("Balance");
+        Grid<CryptoRatesDto> ratesGrid = new Grid<>(CryptoRatesDto.class, false);
+        ratesGrid.addColumn(CryptoRatesDto::getCryptocurrencyCode).setHeader("Cryptocurrency").setAutoWidth(true);
+        ratesGrid.addColumn(CryptoRatesDto::getLastRate).setHeader("Rate").setAutoWidth(true);
+        Grid<CryptoOrderDto> ordersGrid = new Grid<>(CryptoOrderDto.class,false);
+        ordersGrid.addColumn(CryptoOrderDto::getCryptoOrderDate).setHeader("Date").setAutoWidth(true);
+        ordersGrid.addColumn(CryptoOrderDto::getCryptoCode).setHeader("Cryptocurrency").setAutoWidth(true);
+        ordersGrid.addColumn(CryptoOrderDto::getOrderCryptoValue).setHeader("Amount");
+        ordersGrid.addColumn(CryptoOrderDto::getCryptoRate).setHeader("Rate").setAutoWidth(true);
+        ordersGrid.addColumn(CryptoOrderDto::getOperationType).setHeader("Type");
 
         H3 accountBalance = new H3("Actual account balance");
         Label accountBalanceValue = new Label(getBalance());
@@ -54,10 +68,7 @@ public class CryptoView extends HorizontalLayout {
         buy.addClickListener(click -> {
             BigDecimal accountValue = cryptocurrencyAmount.getValue().multiply(cryptoService.getCryptoRate(cryptocurrency.getValue()));
             if (accountService.getBalance().compareTo(accountValue) < 0) {
-                Notification notification = Notification
-                        .show("Not enough money on the account");
-                notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
-                notification.setPosition(Notification.Position.TOP_CENTER);
+                sendErrorNotification("Not enough money on the account");
             } else {
                 cryptoService.buyCryptocurrency(accountValue, cryptocurrency.getValue(), cryptocurrencyAmount.getValue());
                 Notification notification = Notification
@@ -65,17 +76,13 @@ public class CryptoView extends HorizontalLayout {
                 notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 notification.setPosition(Notification.Position.TOP_CENTER);
             }
-            cryptocurrencyAmount.clear();
-            cryptocurrency.clear();
+            exchangeClear(cryptocurrencyAmount, cryptocurrency);
         });
 
         Button sell = new Button("Sell");
         sell.addClickListener(click -> {
             if (cryptoService.getCryptoBalance(cryptocurrency.getValue()).getBalance().compareTo(cryptocurrencyAmount.getValue()) < 0) {
-                Notification notification = Notification
-                        .show("Not enough currency on the account");
-                notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
-                notification.setPosition(Notification.Position.TOP_CENTER);
+                sendErrorNotification("Not enough currency on the account");
             } else {
                 BigDecimal accountValue = cryptocurrencyAmount.getValue().multiply(cryptoService.getCryptoRate(cryptocurrency.getValue()));
                 cryptoService.sellCurrency(accountValue, cryptocurrency.getValue(),cryptocurrencyAmount.getValue());
@@ -87,30 +94,85 @@ public class CryptoView extends HorizontalLayout {
                 notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 notification.setPosition(Notification.Position.TOP_CENTER);
             }
-            cryptocurrencyAmount.clear();
-            cryptocurrency.clear();
+            exchangeClear(cryptocurrencyAmount, cryptocurrency);
         });
 
         buttonsLayout.add(buy, sell);
-        exchangeLayout.add(accountBalance, accountBalanceValue, exchangeCryptoCurrency, amountLayout, buttonsLayout);
 
-        H3 currencyBalance = new H3("Currencies balance");
-        Label btc = new Label(CryptoCurrency.BTC + " - " + cryptoService.getCryptoBalance(CryptoCurrency.BTC).getBalance().setScale(2, RoundingMode.CEILING));
-        Label eth = new Label(CryptoCurrency.ETC + " - " + cryptoService.getCryptoBalance(CryptoCurrency.ETC).getBalance().setScale(2, RoundingMode.CEILING));
-        Label ltc = new Label(CryptoCurrency.LTC + " - " + cryptoService.getCryptoBalance(CryptoCurrency.LTC).getBalance().setScale(2, RoundingMode.CEILING));
-        Label sol = new Label(CryptoCurrency.SOL + " - " + cryptoService.getCryptoBalance(CryptoCurrency.SOL).getBalance().setScale(2, RoundingMode.CEILING));
-        Label doge = new Label(CryptoCurrency.DOGE + " - " + cryptoService.getCryptoBalance(CryptoCurrency.DOGE).getBalance().setScale(2, RoundingMode.CEILING));
-        balanceLayout.add(currencyBalance, btc, eth, ltc, sol, doge);
+        H3 orderCrypto = new H3("Order Cryptocurrency");
+        BigDecimalField orderCryptoAmount = new BigDecimalField("Amount");
+        orderCryptoAmount.setPlaceholder("Enter value");
+        ComboBox<CryptoCurrency> orderCombobox = new ComboBox<>("Cryptocurrency");
+        orderCombobox.setItems(CryptoCurrency.values());
+        orderAmountLayout.add(orderCryptoAmount, orderCombobox);
+        BigDecimalField orderCryptoRate = new BigDecimalField("Rate");
+        orderCryptoRate.setPlaceholder("Enter value");
+        ComboBox<Order> orderType = new ComboBox<>("Type");
+        orderType.setItems(Order.values());
+        orderRateLayout.add(orderCryptoRate, orderType);
+        Button orderBuy = new Button("Buy");
+        orderBuy.addClickListener(click -> {
+            BigDecimal cryptoValue  = orderCryptoAmount.getValue().multiply(cryptoService.getCryptoRate(orderCombobox.getValue()));
+            if (accountService.getBalance().compareTo(cryptoValue.add(cryptoService.getAllOrdersAccountValue())) < 0) {
+                sendErrorNotification("Not enough money on the account");
+            } else {
+                cryptoService.addCryptoOrder(orderCryptoAmount.getValue(), orderCombobox.getValue(), orderCryptoRate.getValue(), orderType.getValue());
+                ordersGrid.setItems(cryptoService.getAllCryptoOrdersList());
+                ordersGrid.getDataProvider().refreshAll();
+                Notification notification = Notification
+                        .show("Added new cryptocurrency order");
+                notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                notification.setPosition(Notification.Position.TOP_CENTER);
+            }
+            orderClear(orderCryptoAmount,orderCombobox, orderCryptoRate, orderType);
+        });
 
-//        H3 rates = new H3("Actual rates");
-//        Label bitcoin = new Label(CryptoCurrency.BTC + " - " + cryptoService.getCryptoRate(CryptoCurrency.BTC).setScale(2, RoundingMode.CEILING));
-//        Label ethereum = new Label(CryptoCurrency.ETC + " - " + cryptoService.getCryptoRate(CryptoCurrency.ETC).setScale(2, RoundingMode.CEILING));
-//        Label litecoin = new Label(CryptoCurrency.LTC + " - " + cryptoService.getCryptoRate(CryptoCurrency.LTC).setScale(2, RoundingMode.CEILING));
-//        Label solana = new Label(CryptoCurrency.SOL + " - " + cryptoService.getCryptoRate(CryptoCurrency.SOL).setScale(2, RoundingMode.CEILING));
-//        Label dogecoin = new Label(CryptoCurrency.DOGE + " - " + cryptoService.getCryptoRate(CryptoCurrency.DOGE).setScale(2, RoundingMode.CEILING));
+        Button orderSell = new Button("Sell");
+        orderSell.addClickListener(click -> {
+            if (cryptoService.getCryptoBalance(orderCombobox.getValue()).getBalance()
+                    .compareTo(orderCryptoAmount.getValue().add(cryptoService.getAllOrdersCryptoValue(orderCombobox.getValue()))) < 0) {
+                sendErrorNotification("Not enough cryptocurrency on the account");
+            } else {
+                addOrder(orderCryptoAmount,orderCombobox, orderCryptoRate, orderType, ordersGrid);
+            }
+            orderClear(orderCryptoAmount,orderCombobox, orderCryptoRate, orderType);
+        });
 
-//        ratesLayout.add(rates, bitcoin, ethereum, litecoin, solana, dogecoin);
-        topLayout.add(exchangeLayout, balanceLayout, ratesLayout);
+        Button deleteOrder = new Button("Delete order");
+        deleteOrder.addClickListener(click -> {
+            if (ordersGrid.getSelectionModel().getFirstSelectedItem().isEmpty()) {
+                sendErrorNotification("Select order to delete");
+            } else {
+                cryptoService.deleteCryptoOrder(ordersGrid.getSelectionModel().getFirstSelectedItem().get().getCryptoOrderId());
+                Notification notification = Notification
+                        .show("Order removed");
+                notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                notification.setPosition(Notification.Position.TOP_CENTER);
+                ordersGrid.setItems(cryptoService.getAllCryptoOrdersList());
+                ordersGrid.getDataProvider().refreshAll();
+            }
+        });
+
+        orderButtonsLayout.add(orderBuy, orderSell, deleteOrder);
+        exchangeLayout.add(accountBalance, accountBalanceValue, exchangeCryptoCurrency, amountLayout, buttonsLayout, orderCrypto, orderAmountLayout,
+                orderRateLayout, orderButtonsLayout);
+
+        H3 cryptoBalance = new H3("Actual balance");
+        balanceGrid.setItems(cryptoService.getAllCryptoBalanceList());
+        balanceGrid.setHeightByRows(true);
+        balanceLayout.add(cryptoBalance, balanceGrid);
+
+        H3 rates = new H3("Actual rates");
+        //ratesGrid.setItems(cryptoService.getAllCryptoRatesList());
+        ratesGrid.setHeightByRows(true);
+        ratesLayout.add(rates, ratesGrid);
+
+        H3 orders = new H3("Actual orders");
+        ordersGrid.setItems(cryptoService.getAllCryptoOrdersList());
+        ordersGrid.setHeightByRows(true);
+        ordersLayout.add(orders, ordersGrid);
+
+        topLayout.add(exchangeLayout, balanceLayout, ratesLayout, ordersLayout);
 
         H3 depositHistory = new H3("Transactions history");
         cryptoGrid.setItems(cryptoService.getAllTransactions());
@@ -125,9 +187,40 @@ public class CryptoView extends HorizontalLayout {
         return accountService.getBalance().setScale(2, RoundingMode.CEILING) + " zł";
     }
 
+    public void exchangeClear(BigDecimalField cryptocurrencyAmount, ComboBox<CryptoCurrency> cryptocurrency) {
+        cryptocurrencyAmount.clear();
+        cryptocurrency.clear();
+    }
+
+    public void addOrder(BigDecimalField orderCryptoAmount, ComboBox<CryptoCurrency> orderCombobox, BigDecimalField orderCryptoRate,
+                         ComboBox<Order> orderType, Grid<CryptoOrderDto> ordersGrid) {
+        cryptoService.addCryptoOrder(orderCryptoAmount.getValue(), orderCombobox.getValue(), orderCryptoRate.getValue(), orderType.getValue());
+        ordersGrid.setItems(cryptoService.getAllCryptoOrdersList());
+        ordersGrid.getDataProvider().refreshAll();
+        Notification notification = Notification
+                .show("Added new cryptocurrency order");
+        notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+        notification.setPosition(Notification.Position.TOP_CENTER);
+    }
+
+    public void orderClear(BigDecimalField orderCryptoAmount, ComboBox<CryptoCurrency> orderCombobox, BigDecimalField orderCryptoRate,
+                           ComboBox<Order> orderType) {
+        orderCryptoAmount.clear();
+        orderCombobox.clear();
+        orderCryptoRate.clear();
+        orderType.clear();
+    }
+
+    public void sendErrorNotification(String info) {
+        Notification notification = Notification
+                .show(info);
+        notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+        notification.setPosition(Notification.Position.TOP_CENTER);
+    }
+
     public void refresh(Grid<CryptoTransactionDto> cryptoGrid, Label accountBalanceValue) {
+        accountBalanceValue.setText(getBalance());
         cryptoGrid.setItems(cryptoService.getAllTransactions());
         cryptoGrid.getDataProvider().refreshAll();
-        accountBalanceValue.setText(getBalance());
     }
 }
