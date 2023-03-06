@@ -1,6 +1,7 @@
 package com.kodilla.vaadin.service;
 
 import com.kodilla.vaadin.domain.AccountBalanceDto;
+import com.kodilla.vaadin.domain.AccountDepositDto;
 import com.kodilla.vaadin.domain.AccountTransactionDto;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -26,9 +27,9 @@ public class AccountService {
     }
 
 
-    public List<AccountTransactionDto> getAllDeposits() {
+    public List<AccountDepositDto> getAllDeposits() {
         URI url = UriComponentsBuilder.fromHttpUrl("http://localhost:8080/v1/account/deposits").build().encode().toUri();
-        AccountTransactionDto[] response = restTemplate.getForObject(url, AccountTransactionDto[].class);
+        AccountDepositDto[] response = restTemplate.getForObject(url, AccountDepositDto[].class);
         return Optional.ofNullable(response).map(Arrays::asList).orElse(Collections.emptyList());
     }
 

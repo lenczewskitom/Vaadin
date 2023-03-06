@@ -66,35 +66,42 @@ public class CryptoView extends HorizontalLayout {
         amountLayout.add(cryptocurrencyAmount, cryptocurrency);
         Button buy = new Button("Buy");
         buy.addClickListener(click -> {
-            BigDecimal accountValue = cryptocurrencyAmount.getValue().multiply(cryptoService.getCryptoRate(cryptocurrency.getValue()));
-            if (accountService.getBalance().compareTo(accountValue) < 0) {
-                sendErrorNotification("Not enough money on the account");
+            if (cryptocurrencyAmount.isEmpty() || cryptocurrency.isEmpty()) {
+                sendErrorNotification("Complete all fields");
             } else {
-                cryptoService.buyCryptocurrency(accountValue, cryptocurrency.getValue(), cryptocurrencyAmount.getValue());
-                Notification notification = Notification
-                        .show(cryptocurrencyAmount.getValue() + " " + cryptocurrency.getValue() + " added to the account");
-                notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                notification.setPosition(Notification.Position.TOP_CENTER);
+                BigDecimal accountValue = cryptocurrencyAmount.getValue().multiply(cryptoService.getCryptoRate(cryptocurrency.getValue()));
+                if (accountService.getBalance().compareTo(accountValue) < 0) {
+                    sendErrorNotification("Not enough money on the account");
+                } else {
+                    cryptoService.buyCryptocurrency(accountValue, cryptocurrency.getValue(), cryptocurrencyAmount.getValue());
+                    refresh(cryptoGrid, balanceGrid, ratesGrid, accountBalanceValue);
+                    Notification notification = Notification
+                            .show(cryptocurrencyAmount.getValue() + " " + cryptocurrency.getValue() + " added to the account");
+                    notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                    notification.setPosition(Notification.Position.TOP_CENTER);
+                }
+                exchangeClear(cryptocurrencyAmount, cryptocurrency);
             }
-            exchangeClear(cryptocurrencyAmount, cryptocurrency);
         });
 
         Button sell = new Button("Sell");
         sell.addClickListener(click -> {
-            if (cryptoService.getCryptoBalance(cryptocurrency.getValue()).getBalance().compareTo(cryptocurrencyAmount.getValue()) < 0) {
-                sendErrorNotification("Not enough currency on the account");
+            if (cryptocurrencyAmount.isEmpty() || cryptocurrency.isEmpty()) {
+                sendErrorNotification("Complete all fields");
             } else {
-                BigDecimal accountValue = cryptocurrencyAmount.getValue().multiply(cryptoService.getCryptoRate(cryptocurrency.getValue()));
-                cryptoService.sellCurrency(accountValue, cryptocurrency.getValue(),cryptocurrencyAmount.getValue());
-                cryptoGrid.setItems(cryptoService.getAllTransactions());
-                cryptoGrid.getDataProvider().refreshAll();
-                accountBalanceValue.setText(getBalance());
-                Notification notification = Notification
-                        .show(cryptocurrencyAmount.getValue() + " " + cryptocurrency.getValue() + " sold from the account");
-                notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                notification.setPosition(Notification.Position.TOP_CENTER);
+                if (cryptoService.getCryptoBalance(cryptocurrency.getValue()).getBalance().compareTo(cryptocurrencyAmount.getValue()) < 0) {
+                    sendErrorNotification("Not enough currency on the account");
+                } else {
+                    BigDecimal accountValue = cryptocurrencyAmount.getValue().multiply(cryptoService.getCryptoRate(cryptocurrency.getValue()));
+                    cryptoService.sellCurrency(accountValue, cryptocurrency.getValue(),cryptocurrencyAmount.getValue());
+                    refresh(cryptoGrid, balanceGrid, ratesGrid, accountBalanceValue);
+                    Notification notification = Notification
+                            .show(cryptocurrencyAmount.getValue() + " " + cryptocurrency.getValue() + " sold from the account");
+                    notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                    notification.setPosition(Notification.Position.TOP_CENTER);
+                }
+                exchangeClear(cryptocurrencyAmount, cryptocurrency);
             }
-            exchangeClear(cryptocurrencyAmount, cryptocurrency);
         });
 
         buttonsLayout.add(buy, sell);
@@ -112,30 +119,38 @@ public class CryptoView extends HorizontalLayout {
         orderRateLayout.add(orderCryptoRate, orderType);
         Button orderBuy = new Button("Buy");
         orderBuy.addClickListener(click -> {
-            BigDecimal cryptoValue  = orderCryptoAmount.getValue().multiply(cryptoService.getCryptoRate(orderCombobox.getValue()));
-            if (accountService.getBalance().compareTo(cryptoValue.add(cryptoService.getAllOrdersAccountValue())) < 0) {
-                sendErrorNotification("Not enough money on the account");
+            if (orderCryptoAmount.isEmpty() || orderCombobox.isEmpty() || orderCryptoRate.isEmpty() || orderType.isEmpty()) {
+                sendErrorNotification("Complete all fields");
             } else {
-                cryptoService.addCryptoOrder(orderCryptoAmount.getValue(), orderCombobox.getValue(), orderCryptoRate.getValue(), orderType.getValue());
-                ordersGrid.setItems(cryptoService.getAllCryptoOrdersList());
-                ordersGrid.getDataProvider().refreshAll();
-                Notification notification = Notification
-                        .show("Added new cryptocurrency order");
-                notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                notification.setPosition(Notification.Position.TOP_CENTER);
+                BigDecimal cryptoValue  = orderCryptoAmount.getValue().multiply(cryptoService.getCryptoRate(orderCombobox.getValue()));
+                if (accountService.getBalance().compareTo(cryptoValue.add(cryptoService.getAllOrdersAccountValue())) < 0) {
+                    sendErrorNotification("Not enough money on the account");
+                } else {
+                    cryptoService.addCryptoOrder(orderCryptoAmount.getValue(), orderCombobox.getValue(), orderCryptoRate.getValue(), orderType.getValue());
+                    ordersGrid.setItems(cryptoService.getAllCryptoOrdersList());
+                    ordersGrid.getDataProvider().refreshAll();
+                    Notification notification = Notification
+                            .show("Added new cryptocurrency order");
+                    notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                    notification.setPosition(Notification.Position.TOP_CENTER);
+                }
+                orderClear(orderCryptoAmount,orderCombobox, orderCryptoRate, orderType);
             }
-            orderClear(orderCryptoAmount,orderCombobox, orderCryptoRate, orderType);
         });
 
         Button orderSell = new Button("Sell");
         orderSell.addClickListener(click -> {
-            if (cryptoService.getCryptoBalance(orderCombobox.getValue()).getBalance()
-                    .compareTo(orderCryptoAmount.getValue().add(cryptoService.getAllOrdersCryptoValue(orderCombobox.getValue()))) < 0) {
-                sendErrorNotification("Not enough cryptocurrency on the account");
+            if (orderCryptoAmount.isEmpty() || orderCombobox.isEmpty() || orderCryptoRate.isEmpty() || orderType.isEmpty()) {
+                sendErrorNotification("Complete all fields");
             } else {
-                addOrder(orderCryptoAmount,orderCombobox, orderCryptoRate, orderType, ordersGrid);
+                if (cryptoService.getCryptoBalance(orderCombobox.getValue()).getBalance()
+                        .compareTo(orderCryptoAmount.getValue().add(cryptoService.getAllOrdersCryptoValue(orderCombobox.getValue()))) < 0) {
+                    sendErrorNotification("Not enough cryptocurrency on the account");
+                } else {
+                    addOrder(orderCryptoAmount,orderCombobox, orderCryptoRate, orderType, ordersGrid);
+                }
+                orderClear(orderCryptoAmount,orderCombobox, orderCryptoRate, orderType);
             }
-            orderClear(orderCryptoAmount,orderCombobox, orderCryptoRate, orderType);
         });
 
         Button deleteOrder = new Button("Delete order");
@@ -218,9 +233,13 @@ public class CryptoView extends HorizontalLayout {
         notification.setPosition(Notification.Position.TOP_CENTER);
     }
 
-    public void refresh(Grid<CryptoTransactionDto> cryptoGrid, Label accountBalanceValue) {
+    public void refresh(Grid<CryptoTransactionDto> cryptoGrid, Grid<CryptoBalanceDto> balanceGrid, Grid<CryptoRatesDto> ratesGrid, Label accountBalanceValue) {
         accountBalanceValue.setText(getBalance());
         cryptoGrid.setItems(cryptoService.getAllTransactions());
         cryptoGrid.getDataProvider().refreshAll();
+        balanceGrid.setItems(cryptoService.getAllCryptoBalanceList());
+        balanceGrid.getDataProvider().refreshAll();
+        //ratesGrid.setItems(cryptoService.getAllCryptoRatesList());
+        //ratesGrid.getDataProvider().refreshAll();
     }
 }

@@ -1,9 +1,7 @@
 package com.kodilla.vaadin.view;
 
-import com.kodilla.vaadin.domain.AccountTransactionDto;
-import com.kodilla.vaadin.domain.CryptoRatesDto;
+import com.kodilla.vaadin.domain.AccountDepositDto;
 import com.kodilla.vaadin.service.AccountService;
-import com.kodilla.vaadin.service.CryptoRatesService;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.grid.Grid;
@@ -32,7 +30,7 @@ public class AccountView extends VerticalLayout {
         VerticalLayout accountLayout = new VerticalLayout();
         HorizontalLayout depositLayout = new HorizontalLayout();
         HorizontalLayout withdrawLayout = new HorizontalLayout();
-        Grid<AccountTransactionDto> accountGrid = new Grid<>(AccountTransactionDto.class);
+        Grid<AccountDepositDto> accountGrid = new Grid<>(AccountDepositDto.class);
 
         H3 accountBalance = new H3("Actual account balance");
         Label accountBalanceValue = new Label(getBalance());
@@ -49,8 +47,7 @@ public class AccountView extends VerticalLayout {
         addDeposit.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         addDeposit.addClickListener(click -> {
             accountService.addDeposit(depositValue.getValue());
-            accountGrid.setItems(accountService.getAllDeposits());
-            accountBalanceValue.setText(getBalance());
+            refresh(accountBalanceValue, accountGrid);
             Notification notification = Notification
                     .show(depositValue.getValue() + " zł added to the account");
             notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
@@ -75,8 +72,7 @@ public class AccountView extends VerticalLayout {
                 notification.setPosition(Notification.Position.TOP_CENTER);
             } else {
                 accountService.addDeposit(withdrawValue.getValue().negate());
-                accountGrid.setItems(accountService.getAllDeposits());
-                accountBalanceValue.setText(getBalance());
+                refresh(accountBalanceValue, accountGrid);
                 Notification notification = Notification
                         .show(withdrawValue.getValue() + " zł withdraw from account");
                 notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
@@ -91,7 +87,7 @@ public class AccountView extends VerticalLayout {
 
         H3 depositHistory = new H3("Deposit history");
         accountGrid.setItems(accountService.getAllDeposits());
-        accountGrid.setColumns("depositId", "depositDate", "depositValue");
+        accountGrid.setColumns("depositDate", "depositValue", "depositType");
 
         accountLayout.add(accountBalance,accountBalanceValue, deposit, depositLayout, withdrawLayout, depositHistory, accountGrid);
         add(accountLayout);
@@ -102,9 +98,10 @@ public class AccountView extends VerticalLayout {
         return accountService.getBalance().setScale(2, RoundingMode.CEILING) + " zł";
     }
 
-    public void refresh() {
-        getBalance();
-
+    public void refresh(Label accountBalanceValue, Grid<AccountDepositDto> accountGrid) {
+        accountBalanceValue.setText(getBalance());
+        accountGrid.getDataProvider().refreshAll();
+        accountGrid.setItems(accountService.getAllDeposits());
     }
 
 }

@@ -71,35 +71,42 @@ public class CurrencyView extends HorizontalLayout {
         amountLayout.add(currencyAmount, currency);
         Button buy = new Button("Buy");
         buy.addClickListener(click -> {
-            BigDecimal accountValue = currencyAmount.getValue().multiply(currencyService.getExchangeRate(currency.getValue()));
-            if (accountService.getBalance().compareTo(accountValue) < 0) {
-                sendErrorNotification("Not enough money on the account");
+            if (currencyAmount.isEmpty() || currency.isEmpty()) {
+                sendErrorNotification("Complete all fields");
             } else {
-                currencyService.buyCurrency(accountValue, currency.getValue(),currencyAmount.getValue());
-                currencyGrid.setItems(currencyService.getAllTransactions());
-                refresh(currencyGrid, balanceGrid, ratesGrid, accountBalanceValue);
-                Notification notification = Notification
-                        .show(currencyAmount.getValue() + " " + currency.getValue() + " added to the account");
-                notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                notification.setPosition(Notification.Position.TOP_CENTER);
+                BigDecimal accountValue = currencyAmount.getValue().multiply(currencyService.getExchangeRate(currency.getValue()));
+                if (accountService.getBalance().compareTo(accountValue) < 0) {
+                    sendErrorNotification("Not enough money on the account");
+                } else {
+                    currencyService.buyCurrency(accountValue, currency.getValue(),currencyAmount.getValue());
+                    refresh(currencyGrid, balanceGrid, ratesGrid, accountBalanceValue);
+                    Notification notification = Notification
+                            .show(currencyAmount.getValue() + " " + currency.getValue() + " added to the account");
+                    notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                    notification.setPosition(Notification.Position.TOP_CENTER);
+                }
+                exchangeClear(currencyAmount, currency);
             }
-            exchangeClear(currencyAmount, currency);
         });
 
         Button sell = new Button("Sell");
         sell.addClickListener(click -> {
-            if (currencyService.getCurrencyBalance(currency.getValue()).getBalance().compareTo(currencyAmount.getValue()) < 0) {
-                sendErrorNotification("Not enough currency on the account");
+            if (currencyAmount.isEmpty() || currency.isEmpty()) {
+                sendErrorNotification("Complete all fields");
             } else {
-                BigDecimal accountValue = currencyAmount.getValue().multiply(currencyService.getExchangeRate(currency.getValue()));
-                currencyService.sellCurrency(accountValue, currency.getValue(),currencyAmount.getValue());
-                refresh(currencyGrid, balanceGrid, ratesGrid, accountBalanceValue);
-                Notification notification = Notification
-                        .show(currencyAmount.getValue() + " " + currency.getValue() + " sold from the account");
-                notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                notification.setPosition(Notification.Position.TOP_CENTER);
+                if (currencyService.getCurrencyBalance(currency.getValue()).getBalance().compareTo(currencyAmount.getValue()) < 0) {
+                    sendErrorNotification("Not enough currency on the account");
+                } else {
+                    BigDecimal accountValue = currencyAmount.getValue().multiply(currencyService.getExchangeRate(currency.getValue()));
+                    currencyService.sellCurrency(accountValue, currency.getValue(),currencyAmount.getValue());
+                    refresh(currencyGrid, balanceGrid, ratesGrid, accountBalanceValue);
+                    Notification notification = Notification
+                            .show(currencyAmount.getValue() + " " + currency.getValue() + " sold from the account");
+                    notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                    notification.setPosition(Notification.Position.TOP_CENTER);
+                }
+                exchangeClear(currencyAmount, currency);
             }
-            exchangeClear(currencyAmount, currency);
         });
         buttonsLayout.add(buy, sell);
 
@@ -116,30 +123,38 @@ public class CurrencyView extends HorizontalLayout {
         orderRateLayout.add(orderCurrencyRate, orderType);
         Button orderBuy = new Button("Buy");
         orderBuy.addClickListener(click -> {
-            BigDecimal currencyValue  = orderCurrencyAmount.getValue().multiply(currencyService.getExchangeRate(orderCombobox.getValue()));
-            if (accountService.getBalance().compareTo(currencyValue.add(currencyService.getAllOrdersAccountValue())) < 0) {
-                sendErrorNotification("Not enough money on the account");
+            if (orderCurrencyAmount.isEmpty() || orderCombobox.isEmpty() || orderCurrencyRate.isEmpty() || orderType.isEmpty()) {
+                sendErrorNotification("Complete all fields");
             } else {
-                currencyService.addCurrencyOrder(orderCurrencyAmount.getValue(), orderCombobox.getValue(), orderCurrencyRate.getValue(), orderType.getValue());
-                ordersGrid.setItems(currencyService.getAllCurrencyOrdersList());
-                ordersGrid.getDataProvider().refreshAll();
-                Notification notification = Notification
-                        .show("Added new currency order");
-                notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                notification.setPosition(Notification.Position.TOP_CENTER);
+                BigDecimal currencyValue  = orderCurrencyAmount.getValue().multiply(currencyService.getExchangeRate(orderCombobox.getValue()));
+                if (accountService.getBalance().compareTo(currencyValue.add(currencyService.getAllOrdersAccountValue())) < 0) {
+                    sendErrorNotification("Not enough money on the account");
+                } else {
+                    currencyService.addCurrencyOrder(orderCurrencyAmount.getValue(), orderCombobox.getValue(), orderCurrencyRate.getValue(), orderType.getValue());
+                    ordersGrid.setItems(currencyService.getAllCurrencyOrdersList());
+                    ordersGrid.getDataProvider().refreshAll();
+                    Notification notification = Notification
+                            .show("Added new currency order");
+                    notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                    notification.setPosition(Notification.Position.TOP_CENTER);
+                }
+                orderClear(orderCurrencyAmount,orderCombobox, orderCurrencyRate, orderType);
             }
-            orderClear(orderCurrencyAmount,orderCombobox, orderCurrencyRate, orderType);
         });
 
         Button orderSell = new Button("Sell");
         orderSell.addClickListener(click -> {
-            if (currencyService.getCurrencyBalance(orderCombobox.getValue()).getBalance()
-                    .compareTo(orderCurrencyAmount.getValue().add(currencyService.getAllOrdersCurrencyValue(orderCombobox.getValue()))) < 0) {
-                sendErrorNotification("Not enough currency on the account");
+            if (orderCurrencyAmount.isEmpty() || orderCombobox.isEmpty() || orderCurrencyRate.isEmpty() || orderType.isEmpty()) {
+                sendErrorNotification("Complete all fields");
             } else {
-                addOrder(orderCurrencyAmount,orderCombobox, orderCurrencyRate, orderType, ordersGrid);
+                if (currencyService.getCurrencyBalance(orderCombobox.getValue()).getBalance()
+                        .compareTo(orderCurrencyAmount.getValue().add(currencyService.getAllOrdersCurrencyValue(orderCombobox.getValue()))) < 0) {
+                    sendErrorNotification("Not enough currency on the account");
+                } else {
+                    addOrder(orderCurrencyAmount,orderCombobox, orderCurrencyRate, orderType, ordersGrid);
+                }
+                orderClear(orderCurrencyAmount,orderCombobox, orderCurrencyRate, orderType);
             }
-            orderClear(orderCurrencyAmount,orderCombobox, orderCurrencyRate, orderType);
         });
 
         Button deleteOrder = new Button("Delete order");
