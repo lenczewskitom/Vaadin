@@ -34,7 +34,7 @@ FROM openjdk:17-alpine
 #
 ARG BUILD_HOME
 ENV APP_HOME=$BUILD_HOME
-COPY --from=build-image $APP_HOME/build/libs/gradle-docker-example.jar app.jar
+COPY --from=build-image $APP_HOME/build/libs/Vaadin-0.0.1-SNAPSHOT-plain.jar app.jar
 
 #
 # The command to run when the container starts.
