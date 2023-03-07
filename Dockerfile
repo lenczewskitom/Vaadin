@@ -1,15 +1,43 @@
-FROM openjdk:17-jdk-alpine
+ARG BUILD_HOME=/Vaadin
 
-WORKDIR /usr/src/app
+#
+# Gradle image for the build stage.
+#
+FROM gradle:jdk17 as build-image
 
-COPY . .
+#
+# Set the working directory.
+#
+ARG BUILD_HOME
+ENV APP_HOME=$BUILD_HOME
+WORKDIR $APP_HOME
 
-RUN addgroup -g 1001 -S appuser && adduser -u 1001 -S appuser -G appuser
-RUN chown -R 1001:1001 /usr/src/app
-RUN ls
-USER 1001
+#
+# Copy the Gradle config, source code, and static analysis config
+# into the build container.
+#
+COPY --chown=gradle:gradle build.gradle settings.gradle $APP_HOME/
+COPY --chown=gradle:gradle src $APP_HOME/src
+COPY --chown=gradle:gradle config $APP_HOME/config
 
-EXPOSE 8081
-RUN cat  /usr/src/app/src/main/resources/application-mogenius.properties >  /usr/src/app/src/main/resources/application.properties
+#
+# Build the application.
+#
+RUN gradle --no-daemon build
 
-ENTRYPOINT ["java","-jar","/usr/src/app/build/libs/Vaadin-0.0.1-SNAPSHOT-plain.jar"]
+#
+# Java image for the application to run in.
+#
+FROM openjdk:17-alpine
+
+#
+# Copy the jar file in and name it app.jar.
+#
+ARG BUILD_HOME
+ENV APP_HOME=$BUILD_HOME
+COPY --from=build-image $APP_HOME/build/libs/gradle-docker-example.jar app.jar
+
+#
+# The command to run when the container starts.
+#
+ENTRYPOINT java -jar app.jar
