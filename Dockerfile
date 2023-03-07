@@ -15,4 +15,4 @@ RUN cat  /usr/src/app/src/main/resources/application-mogenius.properties >  /usr
 RUN chmod +x gradlew
 RUN ./gradlew build -PskipTests
 
-ENTRYPOINT ["java","-jar","/usr/src/app/build/libs/vaadin-0.0.1-SNAPSHOT.jar"]
+ENTRYPOINT ["java","-jar","/usr/src/app/build/libs/Vaadin-0.0.1-SNAPSHOT.jar"]
