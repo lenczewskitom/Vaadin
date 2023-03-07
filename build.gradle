@@ -22,7 +22,7 @@ repositories {
 jar {
     manifest {
         attributes(
-                'Main-Class': 'com.kodilla.vaadin.VaadinApplication'
+                'Main-Class': 'VaadinApplication'
         )
     }
 }
