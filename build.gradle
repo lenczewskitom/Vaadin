@@ -19,6 +19,9 @@ repositories {
     mavenCentral()
 }
 
+vaadin {
+    productionMode = true
+}
 
 ext {
     set('vaadinVersion', "23.3.1")
