@@ -1,8 +1,6 @@
 # https://spring.io/guides/gs/spring-boot-docker/
 FROM openjdk:17-jdk-alpine
 
-#ARG MYSQL_DB_URL
-#ENV MYSQL_DB_URL ${MYSQL_DB_URL?notset}
 WORKDIR /usr/src/app
 
 COPY . .
@@ -12,10 +10,9 @@ RUN chown -R 1001:1001 /usr/src/app
 RUN ls
 USER 1001
 
-EXPOSE 8080
+EXPOSE 8081
 RUN cat  /usr/src/app/src/main/resources/application-mogenius.properties >  /usr/src/app/src/main/resources/application.properties
 RUN chmod +x gradlew
-#RUN echo ${MYSQL_DB_URL}
-#RUN ./gradlew build -PMYSQL_DB_URL="jdbc:${MYSQL_DB_URL}" -PskipTests
+RUN ./gradlew build -PskipTests
 
 ENTRYPOINT ["java","-jar","/usr/src/app/build/libs/vaadin-0.0.1-SNAPSHOT.jar"]
