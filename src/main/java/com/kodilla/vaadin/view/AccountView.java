@@ -71,7 +71,7 @@ public class AccountView extends VerticalLayout {
                 notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
                 notification.setPosition(Notification.Position.TOP_CENTER);
             } else {
-                accountService.addDeposit(withdrawValue.getValue().negate());
+                accountService.withdrawDeposit(withdrawValue.getValue());
                 refresh(accountBalanceValue, accountGrid);
                 Notification notification = Notification
                         .show(withdrawValue.getValue() + " zł withdraw from account");

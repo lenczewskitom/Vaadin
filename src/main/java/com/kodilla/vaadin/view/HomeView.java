@@ -42,10 +42,10 @@ public class HomeView extends VerticalLayout {
         Label accountSavingsValue = new Label(accountService.getBalance().setScale(2, RoundingMode.CEILING) + " zł");
         accountLayout.add(accountSavings, accountSavingsValue);
         Label currenciesSavings = new Label("Savings in currencies: ");
-        Label currenciesSavingsValue = new Label(currencyService.getAllSavings().setScale(2, RoundingMode.CEILING).toString() + " zł");
+        Label currenciesSavingsValue = new Label(currencyService.getAllSavings().setScale(2, RoundingMode.CEILING) + " zł");
         currenciesLayout.add(currenciesSavings, currenciesSavingsValue);
         Label cryptoSavings = new Label("Savings in cryptocurrencies: ");
-        Label cryptoSavingsValue = new Label("0");
+        Label cryptoSavingsValue = new Label(cryptoService.getAllSavings().setScale(2, RoundingMode.CEILING) + " zł");
         cryptocurrenciesLayout.add(cryptoSavings, cryptoSavingsValue);
 
         savingsLayout.add(savings, allLayout, accountLayout, currenciesLayout, cryptocurrenciesLayout);
@@ -71,6 +71,6 @@ public class HomeView extends VerticalLayout {
     }
 
     public String getAllSavings() {
-        return accountService.getBalance().add(currencyService.getAllSavings()).setScale(2, RoundingMode.CEILING) + " zł";
+        return accountService.getBalance().add(currencyService.getAllSavings()).add(cryptoService.getAllSavings()).setScale(2, RoundingMode.CEILING) + " zł";
     }
 }

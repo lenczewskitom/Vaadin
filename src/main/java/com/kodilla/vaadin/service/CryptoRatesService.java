@@ -23,9 +23,10 @@ public class CryptoRatesService {
         return cryptoRatesService;
     }
 
-    public List<CryptoRatesDto> getTopRates() {
+    private final static String BACKEND_ENDPOINT = "https://savings-prod-kodilla-tasks-g3t498.mo4.mogenius.io/v1/cryptoRates/";
 
-        URI uri = UriComponentsBuilder.fromHttpUrl("http://localhost:8080/v1/cryptoRates/top").build().encode().toUri();
+    public List<CryptoRatesDto> getTopRates() {
+        URI uri = UriComponentsBuilder.fromHttpUrl(BACKEND_ENDPOINT + "top").build().encode().toUri();
         CryptoRatesDto[] response = restTemplate.getForObject(uri, CryptoRatesDto[].class);
         return Optional.ofNullable(response).map(Arrays::asList).orElse(Collections.emptyList());
     }

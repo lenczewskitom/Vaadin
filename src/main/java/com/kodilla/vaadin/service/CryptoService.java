@@ -2,7 +2,6 @@ package com.kodilla.vaadin.service;
 
 import com.kodilla.vaadin.domain.*;
 import com.kodilla.vaadin.domain.enums.CryptoCurrency;
-import com.kodilla.vaadin.domain.enums.Currency;
 import com.kodilla.vaadin.domain.enums.Order;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -25,45 +24,47 @@ public class CryptoService {
         return cryptoService;
     }
 
+    private final static String BACKEND_ENDPOINT = "https://savings-prod-kodilla-tasks-g3t498.mo4.mogenius.io/v1/";
+
     public BigDecimal getCryptoRate(CryptoCurrency cryptoCurrencyCode) {
-        URI uri = UriComponentsBuilder.fromHttpUrl("http://localhost:8080/v1/cryptocurrency/rate/" + cryptoCurrencyCode)
+        URI uri = UriComponentsBuilder.fromHttpUrl(BACKEND_ENDPOINT + "cryptocurrency/rate/" + cryptoCurrencyCode)
                 .build().encode().toUri();
         return restTemplate.getForObject(uri, CoinApiResponseDto.class).getRate();
     }
 
     public List<CryptoTransactionDto> getAllTransactions() {
-        URI uri = UriComponentsBuilder.fromHttpUrl("http://localhost:8080/v1/cryptocurrency/transactions").build().encode().toUri();
+        URI uri = UriComponentsBuilder.fromHttpUrl(BACKEND_ENDPOINT + "cryptocurrency/transactions").build().encode().toUri();
         CryptoTransactionDto[] response = restTemplate.getForObject(uri, CryptoTransactionDto[].class);
         return Optional.ofNullable(response).map(Arrays::asList).orElse(Collections.emptyList());
     }
 
     public CryptoBalanceDto getCryptoBalance(CryptoCurrency cryptoCurrency) {
-        URI uri = UriComponentsBuilder.fromHttpUrl("http://localhost:8080/v1/cryptocurrency/balance/" + cryptoCurrency)
+        URI uri = UriComponentsBuilder.fromHttpUrl(BACKEND_ENDPOINT + "cryptocurrency/balance/" + cryptoCurrency)
                 .build().encode().toUri();
         return restTemplate.getForObject(uri, CryptoBalanceDto.class);
     }
 
     public List<CryptoBalanceDto> getAllCryptoBalanceList() {
-        URI uri = UriComponentsBuilder.fromHttpUrl("http://localhost:8080/v1/cryptocurrency/balanceList")
+        URI uri = UriComponentsBuilder.fromHttpUrl(BACKEND_ENDPOINT + "cryptocurrency/balanceList")
                 .build().encode().toUri();
         CryptoBalanceDto[] response = restTemplate.getForObject(uri, CryptoBalanceDto[].class);
         return Optional.ofNullable(response).map(Arrays::asList).orElse(Collections.emptyList());
     }
 
     public List<CryptoRatesDto> getAllCryptoRatesList() {
-        URI uri = UriComponentsBuilder.fromHttpUrl("http://localhost:8080/v1/cryptocurrency/ratesList")
+        URI uri = UriComponentsBuilder.fromHttpUrl(BACKEND_ENDPOINT + "cryptoRates/ratesList")
                 .build().encode().toUri();
         CryptoRatesDto[] response = restTemplate.getForObject(uri, CryptoRatesDto[].class);
         return Optional.ofNullable(response).map(Arrays::asList).orElse(Collections.emptyList());
     }
 
     public BigDecimal getAllSavings() {
-        URI uri = UriComponentsBuilder.fromHttpUrl("http://localhost:8080/v1/cryptocurrency/all").build().encode().toUri();
+        URI uri = UriComponentsBuilder.fromHttpUrl(BACKEND_ENDPOINT + "cryptocurrency/all").build().encode().toUri();
         return restTemplate.getForObject(uri, BigDecimal.class);
     }
 
     public void buyCryptocurrency(BigDecimal accountValue, CryptoCurrency cryptocurrencyCode, BigDecimal cryptocurrencyValue) {
-        URI uri = UriComponentsBuilder.fromHttpUrl("http://localhost:8080/v1/cryptocurrency/buy")
+        URI uri = UriComponentsBuilder.fromHttpUrl(BACKEND_ENDPOINT + "cryptocurrency/buy")
                 .queryParam("accountValue", accountValue)
                 .queryParam("cryptoCurrencyCode", cryptocurrencyCode)
                 .queryParam("cryptocurrencyValue", cryptocurrencyValue).build().encode().toUri();
@@ -71,7 +72,7 @@ public class CryptoService {
     }
 
     public void sellCurrency(BigDecimal accountValue, CryptoCurrency cryptocurrencyCode, BigDecimal cryptocurrencyValue) {
-        URI uri = UriComponentsBuilder.fromHttpUrl("http://localhost:8080/v1/cryptocurrency/sell")
+        URI uri = UriComponentsBuilder.fromHttpUrl(BACKEND_ENDPOINT + "cryptocurrency/sell")
                 .queryParam("accountValue", accountValue)
                 .queryParam("currencyCode", cryptocurrencyCode)
                 .queryParam("currencyValue", cryptocurrencyValue).build().encode().toUri();
@@ -80,7 +81,7 @@ public class CryptoService {
 
     public void addCryptoOrder(BigDecimal cryptoValue, CryptoCurrency cryptoCode,
                                  BigDecimal cryptoRate, Order operationType) {
-        URI uri = UriComponentsBuilder.fromHttpUrl("http://localhost:8080/v1/cryptoOrder")
+        URI uri = UriComponentsBuilder.fromHttpUrl(BACKEND_ENDPOINT + "cryptoOrder")
                 .queryParam("cryptoValue", cryptoValue)
                 .queryParam("cryptoCode", cryptoCode)
                 .queryParam("cryptoRate", cryptoRate)
@@ -89,26 +90,26 @@ public class CryptoService {
     }
 
     public List<CryptoOrderDto> getAllCryptoOrdersList() {
-        URI uri = UriComponentsBuilder.fromHttpUrl("http://localhost:8080/v1/cryptoOrder")
+        URI uri = UriComponentsBuilder.fromHttpUrl(BACKEND_ENDPOINT + "cryptoOrder")
                 .build().encode().toUri();
         CryptoOrderDto[] response = restTemplate.getForObject(uri, CryptoOrderDto[].class);
         return Optional.ofNullable(response).map(Arrays::asList).orElse(Collections.emptyList());
     }
 
     public BigDecimal getAllOrdersAccountValue() {
-        URI uri = UriComponentsBuilder.fromHttpUrl("http://localhost:8080/v1/cryptoOrder/ordersValue")
+        URI uri = UriComponentsBuilder.fromHttpUrl(BACKEND_ENDPOINT + "cryptoOrder/ordersValue")
                 .build().encode().toUri();
         return restTemplate.getForObject(uri, BigDecimal.class);
     }
 
     public BigDecimal getAllOrdersCryptoValue(CryptoCurrency cryptoCode) {
-        URI uri = UriComponentsBuilder.fromHttpUrl("http://localhost:8080/v1/cryptoOrder/cryptoValue/" + cryptoCode)
+        URI uri = UriComponentsBuilder.fromHttpUrl(BACKEND_ENDPOINT + "cryptoOrder/cryptoValue/" + cryptoCode)
                 .build().encode().toUri();
         return restTemplate.getForObject(uri, BigDecimal.class);
     }
 
     public void deleteCryptoOrder(Long id) {
-        URI uri = UriComponentsBuilder.fromHttpUrl("http://localhost:8080/v1/cryptoOrder/" + id)
+        URI uri = UriComponentsBuilder.fromHttpUrl(BACKEND_ENDPOINT + "cryptoOrder/" + id)
                 .build().encode().toUri();
         restTemplate.delete(uri);
     }

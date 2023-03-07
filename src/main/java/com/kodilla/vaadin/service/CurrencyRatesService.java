@@ -17,6 +17,8 @@ public class CurrencyRatesService {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
+    private final static String BACKEND_ENDPOINT = "https://savings-prod-kodilla-tasks-g3t498.mo4.mogenius.io/v1/currencyRates/";
+
     public static CurrencyRatesService getInstance() {
         if (currencyRatesService == null) {
             currencyRatesService = new CurrencyRatesService();
@@ -26,7 +28,7 @@ public class CurrencyRatesService {
 
     public List<CurrencyRatesDto> getTopRates() {
 
-        URI uri = UriComponentsBuilder.fromHttpUrl("http://localhost:8080/v1/currencyRates/top").build().encode().toUri();
+        URI uri = UriComponentsBuilder.fromHttpUrl(BACKEND_ENDPOINT + "top").build().encode().toUri();
         CurrencyRatesDto[] response = restTemplate.getForObject(uri, CurrencyRatesDto[].class);
         return Optional.ofNullable(response).map(Arrays::asList).orElse(Collections.emptyList());
     }

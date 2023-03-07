@@ -118,42 +118,33 @@ public class CurrencyView extends HorizontalLayout {
         orderAmountLayout.add(orderCurrencyAmount, orderCombobox);
         BigDecimalField orderCurrencyRate = new BigDecimalField("Rate");
         orderCurrencyRate.setPlaceholder("Enter value");
-        ComboBox<Order> orderType = new ComboBox<>("Type");
-        orderType.setItems(Order.values());
-        orderRateLayout.add(orderCurrencyRate, orderType);
         Button orderBuy = new Button("Buy");
         orderBuy.addClickListener(click -> {
-            if (orderCurrencyAmount.isEmpty() || orderCombobox.isEmpty() || orderCurrencyRate.isEmpty() || orderType.isEmpty()) {
+            if (orderCurrencyAmount.isEmpty() || orderCombobox.isEmpty() || orderCurrencyRate.isEmpty()) {
                 sendErrorNotification("Complete all fields");
             } else {
                 BigDecimal currencyValue  = orderCurrencyAmount.getValue().multiply(currencyService.getExchangeRate(orderCombobox.getValue()));
                 if (accountService.getBalance().compareTo(currencyValue.add(currencyService.getAllOrdersAccountValue())) < 0) {
                     sendErrorNotification("Not enough money on the account");
                 } else {
-                    currencyService.addCurrencyOrder(orderCurrencyAmount.getValue(), orderCombobox.getValue(), orderCurrencyRate.getValue(), orderType.getValue());
-                    ordersGrid.setItems(currencyService.getAllCurrencyOrdersList());
-                    ordersGrid.getDataProvider().refreshAll();
-                    Notification notification = Notification
-                            .show("Added new currency order");
-                    notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                    notification.setPosition(Notification.Position.TOP_CENTER);
+                    addOrder(orderCurrencyAmount,orderCombobox, orderCurrencyRate, Order.BUY, ordersGrid);
                 }
-                orderClear(orderCurrencyAmount,orderCombobox, orderCurrencyRate, orderType);
+                orderClear(orderCurrencyAmount,orderCombobox, orderCurrencyRate);
             }
         });
 
         Button orderSell = new Button("Sell");
         orderSell.addClickListener(click -> {
-            if (orderCurrencyAmount.isEmpty() || orderCombobox.isEmpty() || orderCurrencyRate.isEmpty() || orderType.isEmpty()) {
+            if (orderCurrencyAmount.isEmpty() || orderCombobox.isEmpty() || orderCurrencyRate.isEmpty()) {
                 sendErrorNotification("Complete all fields");
             } else {
                 if (currencyService.getCurrencyBalance(orderCombobox.getValue()).getBalance()
                         .compareTo(orderCurrencyAmount.getValue().add(currencyService.getAllOrdersCurrencyValue(orderCombobox.getValue()))) < 0) {
                     sendErrorNotification("Not enough currency on the account");
                 } else {
-                    addOrder(orderCurrencyAmount,orderCombobox, orderCurrencyRate, orderType, ordersGrid);
+                    addOrder(orderCurrencyAmount,orderCombobox, orderCurrencyRate, Order.SELL, ordersGrid);
                 }
-                orderClear(orderCurrencyAmount,orderCombobox, orderCurrencyRate, orderType);
+                orderClear(orderCurrencyAmount,orderCombobox, orderCurrencyRate);
             }
         });
 
@@ -174,7 +165,7 @@ public class CurrencyView extends HorizontalLayout {
 
         orderButtonsLayout.add(orderBuy, orderSell, deleteOrder);
         exchangeLayout.add(accountBalance, accountBalanceValue, exchangeCurrency, amountLayout, buttonsLayout, orderCurrency, orderAmountLayout,
-                orderRateLayout, orderButtonsLayout);
+                orderCurrencyRate, orderButtonsLayout);
 
         H3 currencyBalance = new H3("Actual balance");
         balanceGrid.setItems(currencyService.getAllCurrencyBalanceList());
@@ -206,8 +197,8 @@ public class CurrencyView extends HorizontalLayout {
     }
 
     public void addOrder(BigDecimalField orderCurrencyAmount, ComboBox<Currency> orderCombobox, BigDecimalField orderCurrencyRate,
-                         ComboBox<Order> orderType, Grid<CurrencyOrderDto> ordersGrid) {
-        currencyService.addCurrencyOrder(orderCurrencyAmount.getValue(), orderCombobox.getValue(), orderCurrencyRate.getValue(), orderType.getValue());
+                         Order orderType, Grid<CurrencyOrderDto> ordersGrid) {
+        currencyService.addCurrencyOrder(orderCurrencyAmount.getValue(), orderCombobox.getValue(), orderCurrencyRate.getValue(), orderType);
         ordersGrid.setItems(currencyService.getAllCurrencyOrdersList());
         ordersGrid.getDataProvider().refreshAll();
         Notification notification = Notification
@@ -221,12 +212,10 @@ public class CurrencyView extends HorizontalLayout {
         currency.clear();
     }
 
-    public void orderClear(BigDecimalField orderCurrencyAmount, ComboBox<Currency> orderCombobox, BigDecimalField orderCurrencyRate,
-                           ComboBox<Order> orderType) {
+    public void orderClear(BigDecimalField orderCurrencyAmount, ComboBox<Currency> orderCombobox, BigDecimalField orderCurrencyRate) {
         orderCurrencyAmount.clear();
         orderCombobox.clear();
         orderCurrencyRate.clear();
-        orderType.clear();
     }
 
     public void sendErrorNotification(String info) {

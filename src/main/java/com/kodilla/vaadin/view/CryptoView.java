@@ -114,42 +114,33 @@ public class CryptoView extends HorizontalLayout {
         orderAmountLayout.add(orderCryptoAmount, orderCombobox);
         BigDecimalField orderCryptoRate = new BigDecimalField("Rate");
         orderCryptoRate.setPlaceholder("Enter value");
-        ComboBox<Order> orderType = new ComboBox<>("Type");
-        orderType.setItems(Order.values());
-        orderRateLayout.add(orderCryptoRate, orderType);
         Button orderBuy = new Button("Buy");
         orderBuy.addClickListener(click -> {
-            if (orderCryptoAmount.isEmpty() || orderCombobox.isEmpty() || orderCryptoRate.isEmpty() || orderType.isEmpty()) {
+            if (orderCryptoAmount.isEmpty() || orderCombobox.isEmpty() || orderCryptoRate.isEmpty()) {
                 sendErrorNotification("Complete all fields");
             } else {
                 BigDecimal cryptoValue  = orderCryptoAmount.getValue().multiply(cryptoService.getCryptoRate(orderCombobox.getValue()));
                 if (accountService.getBalance().compareTo(cryptoValue.add(cryptoService.getAllOrdersAccountValue())) < 0) {
                     sendErrorNotification("Not enough money on the account");
                 } else {
-                    cryptoService.addCryptoOrder(orderCryptoAmount.getValue(), orderCombobox.getValue(), orderCryptoRate.getValue(), orderType.getValue());
-                    ordersGrid.setItems(cryptoService.getAllCryptoOrdersList());
-                    ordersGrid.getDataProvider().refreshAll();
-                    Notification notification = Notification
-                            .show("Added new cryptocurrency order");
-                    notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                    notification.setPosition(Notification.Position.TOP_CENTER);
+                    addOrder(orderCryptoAmount,orderCombobox, orderCryptoRate, Order.BUY, ordersGrid);
                 }
-                orderClear(orderCryptoAmount,orderCombobox, orderCryptoRate, orderType);
+                orderClear(orderCryptoAmount,orderCombobox, orderCryptoRate);
             }
         });
 
         Button orderSell = new Button("Sell");
         orderSell.addClickListener(click -> {
-            if (orderCryptoAmount.isEmpty() || orderCombobox.isEmpty() || orderCryptoRate.isEmpty() || orderType.isEmpty()) {
+            if (orderCryptoAmount.isEmpty() || orderCombobox.isEmpty() || orderCryptoRate.isEmpty()) {
                 sendErrorNotification("Complete all fields");
             } else {
                 if (cryptoService.getCryptoBalance(orderCombobox.getValue()).getBalance()
                         .compareTo(orderCryptoAmount.getValue().add(cryptoService.getAllOrdersCryptoValue(orderCombobox.getValue()))) < 0) {
                     sendErrorNotification("Not enough cryptocurrency on the account");
                 } else {
-                    addOrder(orderCryptoAmount,orderCombobox, orderCryptoRate, orderType, ordersGrid);
+                    addOrder(orderCryptoAmount,orderCombobox, orderCryptoRate, Order.SELL, ordersGrid);
                 }
-                orderClear(orderCryptoAmount,orderCombobox, orderCryptoRate, orderType);
+                orderClear(orderCryptoAmount,orderCombobox, orderCryptoRate);
             }
         });
 
@@ -170,7 +161,7 @@ public class CryptoView extends HorizontalLayout {
 
         orderButtonsLayout.add(orderBuy, orderSell, deleteOrder);
         exchangeLayout.add(accountBalance, accountBalanceValue, exchangeCryptoCurrency, amountLayout, buttonsLayout, orderCrypto, orderAmountLayout,
-                orderRateLayout, orderButtonsLayout);
+                orderCryptoRate, orderButtonsLayout);
 
         H3 cryptoBalance = new H3("Actual balance");
         balanceGrid.setItems(cryptoService.getAllCryptoBalanceList());
@@ -178,7 +169,7 @@ public class CryptoView extends HorizontalLayout {
         balanceLayout.add(cryptoBalance, balanceGrid);
 
         H3 rates = new H3("Actual rates");
-        //ratesGrid.setItems(cryptoService.getAllCryptoRatesList());
+        ratesGrid.setItems(cryptoService.getAllCryptoRatesList());
         ratesGrid.setHeightByRows(true);
         ratesLayout.add(rates, ratesGrid);
 
@@ -208,8 +199,8 @@ public class CryptoView extends HorizontalLayout {
     }
 
     public void addOrder(BigDecimalField orderCryptoAmount, ComboBox<CryptoCurrency> orderCombobox, BigDecimalField orderCryptoRate,
-                         ComboBox<Order> orderType, Grid<CryptoOrderDto> ordersGrid) {
-        cryptoService.addCryptoOrder(orderCryptoAmount.getValue(), orderCombobox.getValue(), orderCryptoRate.getValue(), orderType.getValue());
+                         Order orderType, Grid<CryptoOrderDto> ordersGrid) {
+        cryptoService.addCryptoOrder(orderCryptoAmount.getValue(), orderCombobox.getValue(), orderCryptoRate.getValue(), orderType);
         ordersGrid.setItems(cryptoService.getAllCryptoOrdersList());
         ordersGrid.getDataProvider().refreshAll();
         Notification notification = Notification
@@ -218,12 +209,10 @@ public class CryptoView extends HorizontalLayout {
         notification.setPosition(Notification.Position.TOP_CENTER);
     }
 
-    public void orderClear(BigDecimalField orderCryptoAmount, ComboBox<CryptoCurrency> orderCombobox, BigDecimalField orderCryptoRate,
-                           ComboBox<Order> orderType) {
+    public void orderClear(BigDecimalField orderCryptoAmount, ComboBox<CryptoCurrency> orderCombobox, BigDecimalField orderCryptoRate) {
         orderCryptoAmount.clear();
         orderCombobox.clear();
         orderCryptoRate.clear();
-        orderType.clear();
     }
 
     public void sendErrorNotification(String info) {
@@ -239,7 +228,7 @@ public class CryptoView extends HorizontalLayout {
         cryptoGrid.getDataProvider().refreshAll();
         balanceGrid.setItems(cryptoService.getAllCryptoBalanceList());
         balanceGrid.getDataProvider().refreshAll();
-        //ratesGrid.setItems(cryptoService.getAllCryptoRatesList());
-        //ratesGrid.getDataProvider().refreshAll();
+        ratesGrid.setItems(cryptoService.getAllCryptoRatesList());
+        ratesGrid.getDataProvider().refreshAll();
     }
 }
