@@ -19,13 +19,6 @@ repositories {
     mavenCentral()
 }
 
-jar {
-    manifest {
-        attributes(
-                'Main-Class': 'VaadinApplication'
-        )
-    }
-}
 
 ext {
     set('vaadinVersion', "23.3.1")
