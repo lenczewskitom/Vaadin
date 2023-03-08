@@ -3,6 +3,7 @@ plugins {
     id 'org.springframework.boot' version '2.7.6'
     id 'io.spring.dependency-management' version '1.0.15.RELEASE'
     id 'com.vaadin' version '23.3.1'
+    id 'war'
 }
 
 group = 'com.kodilla'
@@ -30,11 +31,13 @@ ext {
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'com.vaadin:vaadin-spring-boot-starter'
-    implementation 'org.springframework.boot:spring-boot-starter-tomcat'
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+    providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
+
 }
 
 dependencyManagement {
