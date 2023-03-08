@@ -1,7 +1,20 @@
-FROM tomcat:8.0-alpine
+ARG BUILD_HOME=/Vaadin
 
-LABEL maintainer="lenczewski.tom@gmail.com"
+FROM gradle:jdk17 as build-image
 
-COPY /Vaadin/build/libs/Vaadin-0.0.1-SNAPSHOT.war /usr/local/tomcat/webapps/vaadin.war
+ARG BUILD_HOME
+ENV APP_HOME=$BUILD_HOME
+WORKDIR $APP_HOME
 
-CMD ["catalina.sh", "run"]
+COPY --chown=gradle:gradle build.gradle settings.gradle $APP_HOME/
+COPY --chown=gradle:gradle src $APP_HOME/src
+
+RUN gradle --no-daemon build
+
+FROM openjdk:17-alpine
+
+ARG BUILD_HOME
+ENV APP_HOME=$BUILD_HOME
+COPY --from=build-image $APP_HOME/build/libs/Vaadin-0.0.1-SNAPSHOT.jar app.jar
+
+ENTRYPOINT java -jar app.jar
