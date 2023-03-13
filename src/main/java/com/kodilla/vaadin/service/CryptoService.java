@@ -3,6 +3,7 @@ package com.kodilla.vaadin.service;
 import com.kodilla.vaadin.domain.*;
 import com.kodilla.vaadin.domain.enums.CryptoCurrency;
 import com.kodilla.vaadin.domain.enums.Order;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import java.math.BigDecimal;
@@ -24,7 +25,7 @@ public class CryptoService {
         return cryptoService;
     }
 
-    private final static String BACKEND_ENDPOINT = "https://savings-prod-kodilla-tasks-g3t498.mo4.mogenius.io/v1/";
+    private final String BACKEND_ENDPOINT = "http://localhost:8080/v1/";
 
     public BigDecimal getCryptoRate(CryptoCurrency cryptoCurrencyCode) {
         URI uri = UriComponentsBuilder.fromHttpUrl(BACKEND_ENDPOINT + "cryptocurrency/rate/" + cryptoCurrencyCode)

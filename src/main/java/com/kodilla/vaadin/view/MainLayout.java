@@ -37,8 +37,7 @@ public class MainLayout extends AppLayout {
         RouterLink accountLink = new RouterLink("Account", AccountView.class);
         RouterLink currencyLink = new RouterLink("Currency", CurrencyView.class);
         RouterLink cryptoLink = new RouterLink("Crypto", CryptoView.class);
-        RouterLink historyLink = new RouterLink("History", HistoryView.class);
 
-        addToDrawer(new VerticalLayout(homeLink, accountLink, currencyLink, cryptoLink, historyLink));
+        addToDrawer(new VerticalLayout(homeLink, accountLink, currencyLink, cryptoLink));
     }
 }

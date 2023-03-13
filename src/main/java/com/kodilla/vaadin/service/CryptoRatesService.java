@@ -1,6 +1,7 @@
 package com.kodilla.vaadin.service;
 
 import com.kodilla.vaadin.domain.CryptoRatesDto;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -22,11 +23,10 @@ public class CryptoRatesService {
         }
         return cryptoRatesService;
     }
-
-    private final static String BACKEND_ENDPOINT = "https://savings-prod-kodilla-tasks-g3t498.mo4.mogenius.io/v1/cryptoRates/";
+    private final String BACKEND_ENDPOINT = "http://localhost:8080/v1/";
 
     public List<CryptoRatesDto> getTopRates() {
-        URI uri = UriComponentsBuilder.fromHttpUrl(BACKEND_ENDPOINT + "top").build().encode().toUri();
+        URI uri = UriComponentsBuilder.fromHttpUrl(BACKEND_ENDPOINT + "cryptoRates/top").build().encode().toUri();
         CryptoRatesDto[] response = restTemplate.getForObject(uri, CryptoRatesDto[].class);
         return Optional.ofNullable(response).map(Arrays::asList).orElse(Collections.emptyList());
     }

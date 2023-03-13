@@ -14,7 +14,6 @@ public class CryptoRatesDto {
 
     private long cryptoRateId;
     private BigDecimal lastRate;
-
     private BigDecimal rateChange;
     private CryptoCurrency cryptocurrencyCode;
 }
