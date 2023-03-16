@@ -3,7 +3,6 @@ package com.kodilla.vaadin.service;
 import com.kodilla.vaadin.domain.*;
 import com.kodilla.vaadin.domain.enums.CryptoCurrency;
 import com.kodilla.vaadin.domain.enums.Order;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import java.math.BigDecimal;
@@ -72,12 +71,12 @@ public class CryptoService {
         restTemplate.postForObject(uri, null, CryptoTransactionDto.class);
     }
 
-    public void sellCurrency(BigDecimal accountValue, CryptoCurrency cryptocurrencyCode, BigDecimal cryptocurrencyValue) {
+    public void sellCryptocurrency(BigDecimal accountValue, CryptoCurrency cryptocurrencyCode, BigDecimal cryptocurrencyValue) {
         URI uri = UriComponentsBuilder.fromHttpUrl(BACKEND_ENDPOINT + "cryptocurrency/sell")
                 .queryParam("accountValue", accountValue)
-                .queryParam("currencyCode", cryptocurrencyCode)
-                .queryParam("currencyValue", cryptocurrencyValue).build().encode().toUri();
-        restTemplate.postForObject(uri, null, CurrencyTransactionDto.class);
+                .queryParam("cryptoCurrencyCode", cryptocurrencyCode)
+                .queryParam("cryptocurrencyValue", cryptocurrencyValue).build().encode().toUri();
+        restTemplate.postForObject(uri, null, CryptoTransactionDto.class);
     }
 
     public void addCryptoOrder(BigDecimal cryptoValue, CryptoCurrency cryptoCode,

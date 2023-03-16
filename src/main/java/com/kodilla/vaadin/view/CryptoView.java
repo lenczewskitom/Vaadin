@@ -93,7 +93,7 @@ public class CryptoView extends HorizontalLayout {
                     sendErrorNotification("Not enough currency on the account");
                 } else {
                     BigDecimal accountValue = cryptocurrencyAmount.getValue().multiply(cryptoService.getCryptoRate(cryptocurrency.getValue()));
-                    cryptoService.sellCurrency(accountValue, cryptocurrency.getValue(),cryptocurrencyAmount.getValue());
+                    cryptoService.sellCryptocurrency(accountValue, cryptocurrency.getValue(),cryptocurrencyAmount.getValue());
                     refresh(cryptoGrid, balanceGrid, ratesGrid, accountBalanceValue);
                     Notification notification = Notification
                             .show(cryptocurrencyAmount.getValue() + " " + cryptocurrency.getValue() + " sold from the account");
